@@ -1,3 +1,5 @@
+import os
+
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
@@ -8,11 +10,15 @@ from .database import Base, engine, get_db
 
 Base.metadata.create_all(bind=engine)  # creates tables on startup
 
+# Comma-separated list in .env overrides the default.
+CORS_ORIGINS = [o.strip() for o in os.getenv(
+    "CORS_ORIGINS", "http://localhost:5173,http://localhost:5174").split(",") if o.strip()]
+
 app = FastAPI(title="UBC Hub API")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_origins=CORS_ORIGINS,  # Vite dev servers (5173 default, 5174 if 5173 is busy)
     allow_methods=["*"],
     allow_headers=["*"],
 )
