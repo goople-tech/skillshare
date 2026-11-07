@@ -1,27 +1,62 @@
 import { useEffect, useState } from 'react'
-import { api } from './api'
+import { useAuth0 } from '@auth0/auth0-react'
+import { api, setTokenGetter } from './api'
 
 const CATEGORIES = ['', 'study', 'skill', 'ride']
 const emptyListing = { category: 'study', title: '', description: '', tag: '', location: '', time: '', capacity: 4 }
 
 export default function App() {
+  const { isLoading, isAuthenticated, loginWithRedirect, logout, getAccessTokenSilently } = useAuth0()
   const [user, setUser] = useState(null)
+  const [needsProfile, setNeedsProfile] = useState(false)
   const [error, setError] = useState('')
 
-  if (!user) return <Signup onDone={setUser} />
+  // Give the API layer a way to get a fresh token.
+  useEffect(() => { setTokenGetter(() => getAccessTokenSilently()) }, [getAccessTokenSilently])
+
+  // Once logged in, load the profile; a 404 means we still need to create one.
+  useEffect(() => {
+    if (!isAuthenticated) return
+    api.me().then(setUser).catch((e) => {
+      if (e.message === 'Profile not found') setNeedsProfile(true)
+      else setError(e.message)
+    })
+  }, [isAuthenticated])
+
+  if (isLoading) return <p style={{ fontFamily: 'sans-serif', padding: 16 }}>Loading…</p>
+
+  if (!isAuthenticated) {
+    return (
+      <div style={{ maxWidth: 400, margin: '40px auto', fontFamily: 'sans-serif' }}>
+        <h2>UBC Hub</h2>
+        <p>Log in with your UBC email. We'll email you a one-time code, no password needed.</p>
+        <button onClick={() => loginWithRedirect({ authorizationParams: { connection: 'email' } })}>
+          Log in with UBC email
+        </button>
+      </div>
+    )
+  }
+
+  if (!user) {
+    if (error) return <p style={{ color: 'red', padding: 16 }}>{error} <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>Log out</button></p>
+    return needsProfile ? <ProfileForm onDone={setUser} /> : <p style={{ padding: 16 }}>Loading profile…</p>
+  }
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', fontFamily: 'sans-serif', padding: 16 }}>
       <h1>UBC Hub</h1>
-      <p>Logged in as {user.name} ({user.email}) · XP: {user.xp}</p>
+      <p>
+        Logged in as {user.name} ({user.email}) · XP: {user.xp}{' '}
+        <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>Log out</button>
+      </p>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <Listings user={user} setUser={setUser} setError={setError} />
     </div>
   )
 }
 
-function Signup({ onDone }) {
-  const [form, setForm] = useState({ email: '', name: '', courses: '', skills_teach: '', skills_learn: '' })
+function ProfileForm({ onDone }) {
+  const [form, setForm] = useState({ name: '', courses: '', skills_teach: '', skills_learn: '' })
   const [error, setError] = useState('')
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
@@ -32,8 +67,7 @@ function Signup({ onDone }) {
 
   return (
     <form onSubmit={submit} style={{ maxWidth: 400, margin: '40px auto', fontFamily: 'sans-serif', display: 'grid', gap: 8 }}>
-      <h2>Sign up / Log in</h2>
-      <input placeholder="you@student.ubc.ca" value={form.email} onChange={set('email')} required />
+      <h2>Create your profile</h2>
       <input placeholder="Name" value={form.name} onChange={set('name')} required />
       <input placeholder="Courses (CPSC 213, BIOL 112)" value={form.courses} onChange={set('courses')} />
       <input placeholder="Skills I can teach" value={form.skills_teach} onChange={set('skills_teach')} />
@@ -59,13 +93,13 @@ function Listings({ user, setUser, setError }) {
   const create = async (e) => {
     e.preventDefault()
     try {
-      await api.createListing({ ...form, capacity: Number(form.capacity), owner_id: user.id })
+      await api.createListing({ ...form, capacity: Number(form.capacity), })
       setForm(emptyListing); load()
     } catch (err) { setError(err.message) }
   }
 
   const join = async (id) => {
-    try { await api.join(id, user.id); setUser({ ...user, xp: user.xp + 10 }); load() }
+    try { await api.join(id); setUser({ ...user, xp: user.xp + 10 }); load() }
     catch (err) { setError(err.message) }
   }
 
@@ -74,7 +108,7 @@ function Listings({ user, setUser, setError }) {
   }
 
   const match = async () => {
-    try { setMatches(await api.aiMatch(user.id)) } catch (err) { setError(err.message) }
+    try { setMatches(await api.aiMatch()) } catch (err) { setError(err.message) }
   }
 
   return (

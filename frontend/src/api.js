@@ -1,9 +1,14 @@
 // All calls to the FastAPI backend live here.
 const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 
+// Set by App once Auth0 is ready; returns a fresh access token.
+let getToken = async () => null
+export const setTokenGetter = (fn) => { getToken = fn }
+
 async function request(path, options = {}) {
+  const token = await getToken()
   const res = await fetch(BASE + path, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     ...options,
   })
   const data = await res.json()
@@ -12,10 +17,11 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  me: () => request('/me'),
   signup: (user) => request('/users', { method: 'POST', body: JSON.stringify(user) }),
   getListings: (category) => request('/listings' + (category ? `?category=${category}` : '')),
   createListing: (listing) => request('/listings', { method: 'POST', body: JSON.stringify(listing) }),
-  join: (listingId, userId) => request(`/listings/${listingId}/join?user_id=${userId}`, { method: 'POST' }),
+  join: (listingId) => request(`/listings/${listingId}/join`, { method: 'POST' }),
   aiDraft: (text) => request('/ai/draft', { method: 'POST', body: JSON.stringify({ text }) }),
-  aiMatch: (userId) => request('/ai/match', { method: 'POST', body: JSON.stringify({ user_id: userId }) }),
+  aiMatch: () => request('/ai/match', { method: 'POST' }),
 }
