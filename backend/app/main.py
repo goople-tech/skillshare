@@ -100,3 +100,32 @@ def ai_match(req: schemas.MatchRequest, db: Session = Depends(get_db)):
     listings_d = [{"id": l.id, "category": l.category, "title": l.title,
                    "tag": l.tag, "description": l.description, "time": l.time} for l in others]
     return gemini.rank_matches(user_d, listings_d)
+
+def skills(s: str) -> set[str]:  
+    result = set()
+    for x in s.split(","):
+        if x.strip():
+            result.add(x.strip().lower())
+    return result
+    
+@app.get("/skillshare/matches/{user_id}")     
+def skill_matches(user_id: int, db: Session = Depends(get_db)):
+    user_p = db.get(models.User, user_id)
+    if not user_p:
+        raise HTTPException(404, "User cannot be found!")
+    my_learn = skills(user_p.skills_learn)
+    my_teach = skills(user_p.skills_teach)
+
+    results = []
+    for other in db.query(models.User).filter(models.User.id != user_id).all():
+        they_teach_me = my_learn & skills(other.skills_teach)
+        i_teach_them = my_teach & skills(other.skills_learn)
+        if they_teach_me:
+            results.append({
+                "user": schemas.UserOut.model_validate(other),
+                "they_teach_me": sorted(they_teach_me),
+                "i_teach_them": sorted(i_teach_them),
+                "mutual": bool(i_teach_them),   # the ideal skillshare.
+            })
+    results.sort(key=lambda r: (r["mutual"], len(r["they_teach_me"])), reverse=True)
+    return results
