@@ -15,8 +15,8 @@ class UserCreate(BaseModel):
     @field_validator("email")
     @classmethod
     def must_be_ubc(cls, v: str) -> str:
-        if not v.lower().endswith(("@student.ubc.ca", "@ubc.ca")):
-            raise ValueError("Must be a UBC email (@student.ubc.ca or @ubc.ca)")
+        if not v.lower().endswith(("@student.ubc.ca", "@alum.ubc.ca", "@students.cs.ubc.ca", "@ubc.ca")):
+            raise ValueError("Must be a UBC email!")
         return v.lower()
 
 
