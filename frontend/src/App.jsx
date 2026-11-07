@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from './api'
+import Skillshare from './Skillshare'
 
 const CATEGORIES = ['', 'study', 'skill', 'ride']
 const emptyListing = { category: 'study', title: '', description: '', tag: '', location: '', time: '', capacity: 4 }
@@ -16,6 +17,7 @@ export default function App() {
       <p>Logged in as {user.name} ({user.email}) · XP: {user.xp}</p>
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <Listings user={user} setUser={setUser} setError={setError} />
+      <Skillshare user={user} />
     </div>
   )
 }
