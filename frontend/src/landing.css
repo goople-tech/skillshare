@@ -1254,3 +1254,18 @@ h1 em, h2 em, h3 em { color: var(--orange); font-weight: 400; }
 .hero-visual .hero-campus-seal::before,
 .hero-visual .hero-match-card::before,
 .hero-visual .hero-swap-card::before { filter: drop-shadow(0 8px 12px #173B5E1F); }
+
+/* Cloud shadow back to the softer one used with the feathered clouds */
+.hero-visual .hero-campus-seal::before,
+.hero-visual .hero-match-card::before,
+.hero-visual .hero-swap-card::before { filter: drop-shadow(0 14px 22px #173B5E1A); }
+
+/* Text sits fully inside the cloud body, below the shoulders where the puffs meet */
+.hero-visual .hero-match-card { padding-top: 98px; padding-bottom: 44px; }
+.hero-visual .hero-swap-card { padding-top: 90px; padding-bottom: 40px; }
+.hero-visual .hero-campus-seal { padding-top: 70px; padding-bottom: 30px; }
+@media (max-width: 680px) {
+  .hero-visual .hero-match-card { padding-top: 62px; padding-bottom: 28px; }
+  .hero-visual .hero-swap-card { padding-top: 56px; padding-bottom: 26px; }
+  .hero-visual .hero-campus-seal { padding-top: 44px; padding-bottom: 20px; }
+}
