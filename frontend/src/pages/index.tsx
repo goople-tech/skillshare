@@ -10,7 +10,6 @@ import { Wordmark } from '../components/landing/Wordmark'
 import { BuddiesPreview } from '../components/landing/BuddiesPreview'
 import { SkillPreview } from '../components/landing/SkillPreview'
 import { CampusMap } from '../components/landing/CampusMap'
-import { SignupDialog } from '../components/landing/SignupDialog'
 import { CampusMark } from '../components/landing/CampusMark'
 import '../decor.css'
 
@@ -36,8 +35,6 @@ function StepGraphic({ kind }: { kind: string }) {
 
 export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [signupOpen, setSignupOpen] = useState(false)
-  const openSignup = () => { setMenuOpen(false); setSignupOpen(true) }
   const openLogin = () => { window.location.assign('/auth') } // real Auth0 login (see src/pages/auth.tsx)
 
   return (
@@ -130,7 +127,7 @@ export default function Landing() {
           </section>
 
           <section className="closing-section section" aria-labelledby="closing-title">
-            <div className="container closing-card reveal"><span className="closing-mark" aria-hidden="true"><CampusMark /></span><h2 id="closing-title">Your next connection could be<br /><em>one introduction away.</em></h2><p>Join a student community built around friendship, mutual support, and making things together.</p><button className="button button--sand button--large" onClick={openSignup}>Join with University Email <ArrowUpRight size={19} /></button><span className="closing-small">Free for verified students. </span></div>
+            <div className="container closing-card reveal"><span className="closing-mark" aria-hidden="true"><CampusMark /></span><h2 id="closing-title">Your next connection could be<br /><em>one introduction away.</em></h2><p>Join a student community built around friendship, mutual support, and making things together.</p><button className="button button--sand button--large" onClick={openLogin}>Join with University Email <ArrowUpRight size={19} /></button><span className="closing-small">Free for verified students. </span></div>
           </section>
         </main>
 
@@ -138,7 +135,6 @@ export default function Landing() {
           <div className="container"><div className="footer-main"><div className="footer-brand"><Wordmark /><p>Learn, create, and spend time together.</p></div><nav className="footer-links" aria-label="Footer navigation"><div><h3>Product</h3><a href="#buddies">Buddies</a><a href="#skillshare">SkillShare</a><a href="#campus-activity">Campus Activity</a></div><div><h3>Community</h3><a href="#how-it-works">How It Works</a><a href="#skillshare-highlight">Project Collaboration</a><a href="https://github.com/goople-tech/skillshare" target="_blank" rel="noreferrer">Our Open Project <ArrowUpRight size={12} /></a></div><div><h3>A safe start</h3><a href="#how-it-works">Student Verification</a><a href="#campus-activity">Privacy by Design</a><a href="https://github.com/goople-tech/skillshare/issues" target="_blank" rel="noreferrer">Contact the Team <ArrowUpRight size={12} /></a></div></nav></div><div className="footer-bottom"><p>UBC Ver. is an independent student project and is not affiliated with the University of British Columbia.</p><span>HackCamp 2026 <i>·</i> Vancouver, BC</span></div></div>
         </footer>
       </div>
-      <SignupDialog open={signupOpen} onClose={() => setSignupOpen(false)} />
     </>
   )
 }

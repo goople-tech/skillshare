@@ -16,7 +16,7 @@ Refer to https://docs.deep.space/get-started/project-structure.md before moving 
 
 ## UI state and boundaries
 
-`SignupDialog.tsx` uses a native `<dialog>` for built-in focus containment, Escape dismissal, and scroll-safe modality. Keep `open` and `onClose` state in the page; never leave hidden dialogs mounted visibly. Reset transient validation state on open.
+All landing sign-up/log-in buttons go to `/auth`, which starts the real Auth0 passwordless login. The old prototype `SignupDialog` was removed; its dialog CSS in `landing.css` is now unused.
 
 The email form is an explicitly labeled frontend prototype only. It neither sends email nor verifies accounts. `validation.ts` checks format/domain expectations only, using a true parsed-domain (not suffix) allowlist currently aligned to the backend input domains; domain possession and student status must be verified by a properly authorized backend before linking this UI to privileged data. Keep this distinction visible in the UI and documentation.
 
