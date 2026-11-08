@@ -25,6 +25,7 @@ class User(Base):
     interests: Mapped[str] = mapped_column(String, default="")      # comma-separated, e.g. "hiking,board games"
     mode: Mapped[str] = mapped_column(String, default="either")     # in_person | online | either
     energy: Mapped[str] = mapped_column(String, default="medium")   # low | medium | high
+    photo: Mapped[str] = mapped_column(Text, default="")  # small data URL, optional
     xp: Mapped[int] = mapped_column(Integer, default=0)
 
     listings: Mapped[list["Listing"]] = relationship(back_populates="owner")

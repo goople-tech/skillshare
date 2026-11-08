@@ -13,7 +13,7 @@ Base.metadata.create_all(bind=engine)  # creates tables on startup
 
 # create_all() never adds columns to an existing table, so add the profile columns
 # to databases created before they existed (no need to delete ubchub.db).
-_PROFILE_COLUMNS = {"interests": "''", "mode": "'either'", "energy": "'medium'"}
+_PROFILE_COLUMNS = {"interests": "''", "mode": "'either'", "energy": "'medium'", "photo": "''"}
 
 
 def _add_missing_profile_columns() -> None:
@@ -21,7 +21,8 @@ def _add_missing_profile_columns() -> None:
     with engine.begin() as conn:
         for name, default in _PROFILE_COLUMNS.items():
             if name not in existing:
-                conn.execute(text(f"ALTER TABLE users ADD COLUMN {name} VARCHAR NOT NULL DEFAULT {default}"))
+                kind = "TEXT" if name == "photo" else "VARCHAR"
+                conn.execute(text(f"ALTER TABLE users ADD COLUMN {name} {kind} NOT NULL DEFAULT {default}"))
 
 
 _add_missing_profile_columns()
@@ -122,7 +123,7 @@ def ai_draft(req: schemas.DraftRequest, _: models.User = Depends(current_user)):
 def ai_match(user: models.User = Depends(current_user), db: Session = Depends(get_db)):
     """Suggest the best listings for the logged-in user, with a reason for each."""
     others = db.query(models.Listing).filter(models.Listing.owner_id != user.id).all()
-    user_d = schemas.UserOut.model_validate(user).model_dump()
+    user_d = schemas.UserOut.model_validate(user).model_dump(exclude={"photo"})
     listings_d = [{"id": l.id, "category": l.category, "title": l.title,
                    "tag": l.tag, "description": l.description, "time": l.time} for l in others]
     return gemini.rank_matches(user_d, listings_d)

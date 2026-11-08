@@ -36,6 +36,16 @@ def test_defaults_when_fields_omitted():
     assert (body["interests"], body["mode"], body["energy"]) == ("", "either", "medium")
 
 
+def test_photo_is_optional_and_saved():
+    as_user("cara@student.ubc.ca")
+    created = client.post("/users", json={"name": "Cara"}).json()
+    assert created["photo"] == ""
+    saved = client.put("/me", json={"photo": "data:image/jpeg;base64,abc"}).json()
+    assert saved["photo"] == "data:image/jpeg;base64,abc"
+    assert saved["name"] == "Cara"
+    assert client.put("/me", json={"photo": "x" * 400_001}).status_code == 422
+
+
 def test_partial_update_changes_only_sent_fields():
     as_user("alice@student.ubc.ca")
     r = client.put("/me", json={"energy": "low", "courses": "CPSC 213"})
@@ -83,5 +93,5 @@ def test_old_database_gets_new_columns():
     finally:
         main.engine = original
     with old.connect() as c:
-        row = c.execute(sa.text("SELECT interests, mode, energy FROM users")).one()
-    assert tuple(row) == ("", "either", "medium")
+        row = c.execute(sa.text("SELECT interests, mode, energy, photo FROM users")).one()
+    assert tuple(row) == ("", "either", "medium", "")
