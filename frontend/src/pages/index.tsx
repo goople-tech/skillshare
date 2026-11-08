@@ -48,11 +48,11 @@ export default function Landing() {
           <div className="header-inner container">
             <Wordmark />
             <nav className="desktop-nav" aria-label="Main navigation">{navigation.map((link) => <a key={link.label} href={link.href}>{link.label}</a>)}</nav>
-            <div className="header-actions"><button className="login-button" onClick={openLogin}>Log In</button><button className="button button--primary header-join" onClick={openSignup}>Join with University Email <ArrowUpRight size={16} /></button></div>
+            <div className="header-actions"><button className="button button--primary header-join" onClick={openLogin}>Log In / Sign Up</button></div>
             <button className="menu-button" type="button" aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={24} /> : <Menu size={24} />}</button>
           </div>
           <div id="mobile-navigation" className={`mobile-navigation ${menuOpen ? 'mobile-navigation--open' : ''}`} hidden={!menuOpen}>
-            <nav aria-label="Mobile navigation">{navigation.map((link) => <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}<ChevronRight size={17} /></a>)}<button className="login-button" onClick={openLogin}>Log In<ChevronRight size={17} /></button><button className="button button--primary" onClick={openSignup}>Join with University Email <ArrowUpRight size={16} /></button></nav>
+            <nav aria-label="Mobile navigation">{navigation.map((link) => <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}<ChevronRight size={17} /></a>)}<button className="button button--primary" onClick={openLogin}>Log In / Sign Up</button></nav>
           </div>
         </header>
 
@@ -62,7 +62,7 @@ export default function Landing() {
               <div className="eyebrow">A student community beyond the classroom</div>
               <h1 id="hero-title">Find your people.<br />Make campus feel<br />like <em>home.</em></h1>
               <p className="hero-description">Meet students who share your courses, interests, and energy. Exchange skills, start projects, and turn everyday campus moments into lasting connections.</p>
-              <div className="hero-actions"><button className="button button--primary button--large" onClick={openSignup}>Find Your Community <ArrowUpRight size={19} /></button><a className="button button--outline button--large" href="#skillshare">Explore SkillShare <ArrowDown size={17} /></a></div>
+              <div className="hero-actions"><button className="button button--primary button--large" onClick={openLogin}>Sign Up <ArrowUpRight size={19} /></button><a className="button button--outline button--large" href="#skillshare">Explore SkillShare <ArrowDown size={17} /></a></div>
               <div className="hero-reassurance"><ShieldCheck size={17} /><span>Student verification required <i>·</i> Connect in person or online</span></div>
             </div>
             <div className="hero-visual">
