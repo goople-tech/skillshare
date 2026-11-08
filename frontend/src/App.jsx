@@ -10,6 +10,7 @@ export default function App() {
   const [user, setUser] = useState(null)
   const [needsProfile, setNeedsProfile] = useState(false)
   const [error, setError] = useState('')
+  const [editing, setEditing] = useState(false)
 
   // Give the API layer a way to get a fresh token.
   useEffect(() => { setTokenGetter(() => getAccessTokenSilently()) }, [getAccessTokenSilently])
@@ -42,39 +43,89 @@ export default function App() {
     return needsProfile ? <ProfileForm onDone={setUser} /> : <p style={{ padding: 16 }}>Loading profile…</p>
   }
 
+  if (editing) {
+    return <ProfileForm initial={user} onDone={(u) => { setUser(u); setEditing(false) }} onCancel={() => setEditing(false)} />
+  }
+
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', fontFamily: 'sans-serif', padding: 16 }}>
       <h1>UBC Hub</h1>
       <p>
         Logged in as {user.name} ({user.email}) · XP: {user.xp}{' '}
+        <button onClick={() => setEditing(true)}>Edit profile</button>{' '}
         <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>Log out</button>
       </p>
       {error && <p style={{ color: 'red' }}>{error}</p>}
+      <ProfileSummary user={user} />
       <Listings user={user} setUser={setUser} setError={setError} />
     </div>
   )
 }
 
-function ProfileForm({ onDone }) {
-  const [form, setForm] = useState({ name: '', courses: '', skills_teach: '', skills_learn: '' })
+const PROFILE_FIELDS = ['name', 'bio', 'courses', 'skills_teach', 'skills_learn', 'interests', 'mode', 'energy']
+const MODE_LABELS = { in_person: 'In person', online: 'Online', either: 'Either' }
+const ENERGY_LABELS = { low: 'Low-key', medium: 'Medium', high: 'High energy' }
+
+// Used both to create a new profile and (with `initial`) to edit an existing one.
+function ProfileForm({ initial, onDone, onCancel }) {
+  const isEdit = Boolean(initial)
+  const [form, setForm] = useState(() => {
+    const blank = { name: '', bio: '', courses: '', skills_teach: '', skills_learn: '', interests: '', mode: 'either', energy: 'medium' }
+    return isEdit ? Object.fromEntries(PROFILE_FIELDS.map((k) => [k, initial[k] ?? blank[k]])) : blank
+  })
   const [error, setError] = useState('')
+  const [saving, setSaving] = useState(false)
   const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
   const submit = async (e) => {
     e.preventDefault()
-    try { onDone(await api.signup(form)) } catch (err) { setError(err.message) }
+    setSaving(true)
+    try { onDone(await (isEdit ? api.updateMe(form) : api.signup(form))) }
+    catch (err) { setError(err.message) }
+    finally { setSaving(false) }
   }
 
   return (
     <form onSubmit={submit} style={{ maxWidth: 400, margin: '40px auto', fontFamily: 'sans-serif', display: 'grid', gap: 8 }}>
-      <h2>Create your profile</h2>
+      <h2>{isEdit ? 'Edit your profile' : 'Create your profile'}</h2>
       <input placeholder="Name" value={form.name} onChange={set('name')} required />
+      <textarea placeholder="Short bio" value={form.bio} onChange={set('bio')} rows={2} />
       <input placeholder="Courses (CPSC 213, BIOL 112)" value={form.courses} onChange={set('courses')} />
+      <input placeholder="Interests (hiking, board games, anime)" value={form.interests} onChange={set('interests')} />
       <input placeholder="Skills I can teach" value={form.skills_teach} onChange={set('skills_teach')} />
       <input placeholder="Skills I want to learn" value={form.skills_learn} onChange={set('skills_learn')} />
-      <button>Continue</button>
+      <label>
+        Meet up{' '}
+        <select value={form.mode} onChange={set('mode')}>
+          {Object.entries(MODE_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+        </select>
+      </label>
+      <label>
+        Energy level{' '}
+        <select value={form.energy} onChange={set('energy')}>
+          {Object.entries(ENERGY_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
+        </select>
+      </label>
+      <button disabled={saving}>{saving ? 'Saving…' : isEdit ? 'Save changes' : 'Continue'}</button>
+      {isEdit && <button type="button" onClick={onCancel}>Cancel</button>}
       {error && <p style={{ color: 'red' }}>{error}</p>}
     </form>
+  )
+}
+
+function ProfileSummary({ user }) {
+  const row = (label, value) => value ? <div><b>{label}:</b> {value}</div> : null
+  return (
+    <section style={{ border: '1px solid #ccc', padding: 8 }}>
+      <h3 style={{ marginTop: 0 }}>Your profile</h3>
+      {row('Bio', user.bio)}
+      {row('Courses', user.courses)}
+      {row('Interests', user.interests)}
+      {row('Teaches', user.skills_teach)}
+      {row('Wants to learn', user.skills_learn)}
+      {row('Meets', MODE_LABELS[user.mode])}
+      {row('Energy', ENERGY_LABELS[user.energy])}
+    </section>
   )
 }
 

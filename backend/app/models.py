@@ -21,6 +21,10 @@ class User(Base):
     courses: Mapped[str] = mapped_column(String, default="")   # comma-separated, e.g. "CPSC 213,BIOL 112"
     skills_teach: Mapped[str] = mapped_column(String, default="")
     skills_learn: Mapped[str] = mapped_column(String, default="")
+    # Buddies matching fields (whiteboard: interests, in-person/online, energy level)
+    interests: Mapped[str] = mapped_column(String, default="")      # comma-separated, e.g. "hiking,board games"
+    mode: Mapped[str] = mapped_column(String, default="either")     # in_person | online | either
+    energy: Mapped[str] = mapped_column(String, default="medium")   # low | medium | high
     xp: Mapped[int] = mapped_column(Integer, default=0)
 
     listings: Mapped[list["Listing"]] = relationship(back_populates="owner")

@@ -1,7 +1,9 @@
 from typing import Literal
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 Category = Literal["study", "skill", "ride"]
+Mode = Literal["in_person", "online", "either"]
+Energy = Literal["low", "medium", "high"]
 
 
 class UserCreate(BaseModel):
@@ -11,6 +13,21 @@ class UserCreate(BaseModel):
     courses: str = ""
     skills_teach: str = ""
     skills_learn: str = ""
+    interests: str = ""
+    mode: Mode = "either"
+    energy: Energy = "medium"
+
+
+class UserUpdate(BaseModel):
+    """Partial profile edit: only the fields sent are changed. Email and XP can't be edited."""
+    name: str | None = Field(default=None, min_length=1)
+    bio: str | None = None
+    courses: str | None = None
+    skills_teach: str | None = None
+    skills_learn: str | None = None
+    interests: str | None = None
+    mode: Mode | None = None
+    energy: Energy | None = None
 
 
 class UserOut(BaseModel):
@@ -22,6 +39,9 @@ class UserOut(BaseModel):
     courses: str
     skills_teach: str
     skills_learn: str
+    interests: str
+    mode: str
+    energy: str
     xp: int
 
 
