@@ -7,8 +7,8 @@ export function LoadingRows({ rows = 3 }: { rows?: number }) {
 export function EmptyPanel({ icon, heading, text, action }: { icon?: ReactNode; heading: string; text: string; action?: ReactNode }) {
   return <div className="empty-panel">{icon && <span className="empty-icon" aria-hidden="true">{icon}</span>}<h3>{heading}</h3><p>{text}</p>{action}</div>
 }
-export function ErrorPanel({ retry }: { retry: () => Promise<void> }) {
-  return <div className="error-panel" role="alert"><AlertCircle size={20} /><div><strong>We couldn’t load this workspace.</strong><p>Try again. Your profile has not been changed.</p></div><button className="button button--outline" onClick={() => void retry()}><RotateCw size={16} /> Retry</button></div>
+export function ErrorPanel({ retry, message = 'We couldn’t load this workspace.' }: { retry: () => Promise<void>; message?: string }) {
+  return <div className="error-panel" role="alert"><AlertCircle size={20} /><div><strong>{message}</strong><p>Try again. Your profile has not been changed.</p></div><button className="button button--outline" onClick={() => void retry()}><RotateCw size={16} /> Retry</button></div>
 }
 export function BusyLabel({ busy, children }: { busy: boolean; children: ReactNode }) {
   return <>{busy && <LoaderCircle className="spin" size={14} aria-hidden="true" />}{children}</>

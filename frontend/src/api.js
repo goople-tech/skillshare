@@ -5,7 +5,7 @@ const BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 let getToken = async () => null
 export const setTokenGetter = (fn) => { getToken = fn }
 
-async function request(path, options = {}) {
+async function apiRequest(path, options = {}) {
   const token = await getToken()
   const res = await fetch(BASE + path, {
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
@@ -17,13 +17,15 @@ async function request(path, options = {}) {
 }
 
 export const api = {
-  me: () => request('/me'),
+  me: () => apiRequest('/me'),
   signup: (user) => request('/users', { method: 'POST', body: JSON.stringify(user) }),
   updateMe: (changes) => request('/me', { method: 'PUT', body: JSON.stringify(changes) }),
   getListings: (category) => request('/listings' + (category ? `?category=${category}` : '')),
   createListing: (listing) => request('/listings', { method: 'POST', body: JSON.stringify(listing) }),
   join: (listingId) => request(`/listings/${listingId}/join`, { method: 'POST' }),
   aiDraft: (text) => request('/ai/draft', { method: 'POST', body: JSON.stringify({ text }) }),
-  aiMatch: () => request('/ai/match', { method: 'POST' }),
-  skillMatches: () => request('/skillshare/matches'),
+  aiMatch: () => apiRequest('/ai/match', { method: 'POST' }),
+  skillMatches: () => apiRequest('/skillshare/matches'),
 }
+
+export { apiRequest }

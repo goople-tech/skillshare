@@ -16,6 +16,8 @@ export const sampleSnapshot: WorkspaceSnapshot = {
     { id: 'jordan', name: 'Jordan Lee', initials: 'JL', program: 'Design', year: 'Second year', context: 'Working on a student portfolio and would welcome constructive feedback. Interested in board games and hiking.', courses: ['DES 220'], interests: ['Board games', 'UI design'], offers: ['Portfolio design'], learns: ['Python'], preference: 'Online or in person', invited: false },
   ],
   matches: [{ id: 'match-1', personId: 'jordan', name: 'Jordan Lee', initials: 'JL', offer: 'Python', learn: 'Portfolio design', invited: false }],
+  skillOffers: [],
+  projectOffers: [],
   requests: [
     { id: 'request-buddy', type: 'Buddy request', personId: 'maya', personName: 'Maya Chen', initials: 'MC', context: 'CPSC 210 · Quiet study sessions', meeting: 'In person · Weekends', timestamp: '2h ago', status: 'pending' },
     { id: 'exchange-request', type: 'SkillShare exchange', personId: 'samir', personName: 'Samir Patel', initials: 'SP', context: 'Your Python ↔ Their statistics', meeting: 'Online · Once a week', timestamp: 'Yesterday', status: 'pending' },
