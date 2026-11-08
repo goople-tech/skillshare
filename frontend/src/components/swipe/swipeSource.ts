@@ -6,6 +6,7 @@ export interface SwipeDataSource {
   loadDeck(deck: SwipeKind): Promise<SwipeCardView[]>
   swipe(deck: SwipeKind, personId: string, direction: SwipeDirection): Promise<SwipeOutcome>
   loadMatches(): Promise<SwipeMatchView[]>
+  resolveConversation?(deck: SwipeKind, personId: string): Promise<string>
 }
 
 /** Backend shapes (FastAPI `StudentMatchOut`, `SwipeCard`, `SwipeResult`, `SwipeMatch`). Other students' photos are not shared. */
@@ -56,6 +57,12 @@ export class ApiSwipeSource implements SwipeDataSource {
   async loadMatches() {
     const matches = await this.request<ApiSwipeMatch[]>('/swipe/matches')
     return matches.map((match) => ({ kind: match.kind, person: cardFromApi(match.profile) }))
+  }
+  async resolveConversation(deck: SwipeKind, personId: string): Promise<string> {
+    const conversations = await this.request<Array<{ id: number; kind: SwipeKind; participant: { id: number } }>>(`/conversations?kind=${deck}`)
+    const match = conversations.find(conversation => conversation.kind === deck && String(conversation.participant.id) === personId)
+    if (!match) throw new Error('Your conversation could not be found. Refresh your matches and try again.')
+    return String(match.id)
   }
 }
 

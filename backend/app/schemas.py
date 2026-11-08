@@ -1,5 +1,6 @@
+from datetime import datetime
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 Category = Literal["study", "skill", "ride"]
 Mode = Literal["in_person", "online", "either"]
@@ -64,11 +65,84 @@ class StudentMatchOut(BaseModel):
     energy: Energy
 
 
+class SkillRatingOut(BaseModel):
+    """Completed-review aggregate only. Absent values mean no completed reviews."""
+    average: float | None = Field(default=None, ge=1, le=5)
+    completed_reviews: int = Field(ge=0)
+
+
 class SkillMatchOut(BaseModel):
     user: StudentMatchOut
     they_teach_me: list[str]
     i_teach_them: list[str]
     mutual: bool
+
+
+SkillCategory = Literal["technical", "academic", "creative", "design", "music", "languages", "other"]
+
+
+class SkillDiscoveryOut(BaseModel):
+    profile: StudentMatchOut
+    categories: list[SkillCategory]
+    they_teach_me: list[str]
+    i_teach_them: list[str]
+    mutual: bool
+    reasons: list[str]
+    rating: SkillRatingOut
+
+
+class SkillDiscoveryPage(BaseModel):
+    results: list[SkillDiscoveryOut]
+    count: int = Field(ge=0)
+    limit: int = Field(ge=1, le=50)
+
+
+class SkillCatalogOut(BaseModel):
+    """Existing public-profile skills for meaningful filter options, not fixture data."""
+    skills: list[str]
+
+
+class SkillExchangeCreate(BaseModel):
+    """Schedule one lesson with an existing mutual SkillShare match."""
+    partner_id: int
+    scheduled_for: datetime
+
+    @model_validator(mode="after")
+    def scheduled_time_has_zone(self):
+        if self.scheduled_for.utcoffset() is None:
+            raise ValueError("scheduled_for must include a UTC offset")
+        return self
+
+
+class ReviewState(BaseModel):
+    status: Literal["waiting_for_peer", "awaiting_completion", "eligible", "submitted"]
+    can_rate: bool
+    can_confirm_completion: bool
+    acknowledged_by_me: bool
+    acknowledged_by_peer: bool
+    values: "SkillReviewIn | None" = None
+
+
+class SkillExchangeOut(BaseModel):
+    id: int
+    partner: StudentMatchOut
+    scheduled_for: datetime
+    review: ReviewState
+
+
+class SkillReviewIn(BaseModel):
+    learned: int = Field(ge=1, le=5)
+    taught: int = Field(ge=1, le=5)
+    collaboration: int = Field(ge=1, le=5)
+
+
+class SkillReviewOut(BaseModel):
+    """Author-owned values. Feedback author identities are never publicly aggregated."""
+    exchange_id: int
+    learned: int
+    taught: int
+    collaboration: int
+    updated_at: datetime
 
 
 class ListingCreate(BaseModel):

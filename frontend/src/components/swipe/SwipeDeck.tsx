@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { ArrowLeft, ArrowRight, Check, Heart, RotateCcw, Sparkles, X } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, Heart, MessageCircle, RotateCcw, Sparkles, X } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import type { SwipeDataSource } from './swipeSource'
 import { DECK_LABEL, type SwipeCardView, type SwipeDirection, type SwipeKind } from './types'
 
@@ -31,6 +32,8 @@ export function SwipeDeck({ kind, source, onClose, onUsePreview }: {
   const [exit, setExit] = useState<Exit | null>(null)
   const [match, setMatch] = useState<SwipeCardView | null>(null)
   const [notice, setNotice] = useState('')
+  const [messageBusy, setMessageBusy] = useState(false)
+  const navigate = useNavigate()
   const pendingRef = useRef<SwipeDirection | null>(null)
   const busyRef = useRef(false)
   const label = DECK_LABEL[kind]
@@ -79,6 +82,20 @@ export function SwipeDeck({ kind, source, onClose, onUsePreview }: {
       }
     }, reducedMotion() ? 0 : EXIT_MS)
   }, [cards, kind, match, source])
+
+  async function messageMatch(person: SwipeCardView) {
+    if (!source.resolveConversation || messageBusy) return
+    setMessageBusy(true)
+    setNotice('')
+    try {
+      const id = await source.resolveConversation(kind, person.id)
+      dialogRef.current?.close()
+      void navigate(`/${kind === 'skill' ? 'skillshare' : 'buddies'}/messages?conversation=${id}`)
+    } catch (reason) {
+      setNotice(reason instanceof Error ? reason.message : 'Could not open the conversation. Try again.')
+      setMessageBusy(false)
+    }
+  }
 
   // Keyboard: first press tilts, second press of the same arrow commits.
   useEffect(() => {
@@ -214,6 +231,7 @@ export function SwipeDeck({ kind, source, onClose, onUsePreview }: {
             <h3 id="swipe-match-title">{kind === 'skill' ? "It's a skill swap!" : "You're connected!"}</h3>
             <p>You and {match.name} both said yes{kind === 'skill' ? ' to trading skills' : ' to meeting up'}. They'll see you in their matches too.</p>
             <button type="button" className="button" autoFocus onClick={() => setMatch(null)}>Keep swiping</button>
+            {source.kind === 'api' && <button type="button" className="button" disabled={messageBusy} onClick={() => void messageMatch(match)}><MessageCircle size={16} />{messageBusy ? 'Opening conversation…' : 'Message match'}</button>}
           </div>
         </div>}
       </div>

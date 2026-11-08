@@ -9,6 +9,7 @@ dist/
 *.tgz
 test-results/
 playwright-report/
+frontend/artifacts/
 src/router.ts
 src/modals.tsx
 .claude/launch.json

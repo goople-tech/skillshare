@@ -9,9 +9,12 @@ export type Path =
   | `/account`
   | `/api-status`
   | `/auth`
+  | `/buddies/messages`
   | `/home`
   | `/profile`
   | `/settings`
+  | `/skillshare`
+  | `/skillshare/messages`
 
 export type Params = {
   '/*': { '*': string }

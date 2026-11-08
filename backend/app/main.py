@@ -8,6 +8,8 @@ from sqlalchemy.orm import Session
 
 from . import models, schemas, gemini
 from .swipe import router as swipe_router
+from .skillshare import router as skillshare_discovery_router
+from .messaging.routes import router as messaging_router
 from .auth import current_email, current_user
 from .database import Base, engine, get_db
 from .privacy import aggregate_heat_points
@@ -45,6 +47,8 @@ app.add_middleware(
 )
 
 app.include_router(swipe_router)  # Buddies / SkillShare swipe decks (app/swipe.py)
+app.include_router(skillshare_discovery_router)  # discovery + completed-lesson reviews
+app.include_router(messaging_router)  # private Buddies / SkillShare conversations
 
 
 @app.get("/")

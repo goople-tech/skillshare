@@ -11,7 +11,9 @@ const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia('
  * ← once lifts the Buddies card, ← again opens the Buddies deck; → does the same for SkillShare.
  * Keys only act while this section is on screen (or focused), so the rest of the page keeps its arrows.
  */
-export function CrossedCards({ onOpen, disabled = false }: { onOpen: (kind: SwipeKind) => void; disabled?: boolean }) {
+export function CrossedCards({ onOpen, disabled = false, kinds = ['buddy', 'skill'], id = 'swipe-decks', titleId = 'crossed-cards-title', heading = 'Swipe to find your people', eyebrow = 'Meet people', description = "Pick a deck. Pass on the left, like on the right. When you both like each other, you're connected." }: {
+  onOpen: (kind: SwipeKind) => void; disabled?: boolean; kinds?: SwipeKind[]; id?: string; titleId?: string; heading?: string; eyebrow?: string; description?: string
+}) {
   const sectionRef = useRef<HTMLElement>(null)
   const [visible, setVisible] = useState(false)
   const [revealed, setRevealed] = useState(false)
@@ -70,45 +72,45 @@ export function CrossedCards({ onOpen, disabled = false }: { onOpen: (kind: Swip
       const target = event.target as HTMLElement | null
       if (target && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName))) return
       if (document.querySelector('dialog[open]')) return
-      if (event.key === 'ArrowLeft') { event.preventDefault(); press('left') }
-      else if (event.key === 'ArrowRight') { event.preventDefault(); press('right') }
+      if (event.key === 'ArrowLeft' && kinds.includes('buddy')) { event.preventDefault(); press('left') }
+      else if (event.key === 'ArrowRight' && kinds.includes('skill')) { event.preventDefault(); press('right') }
       else if (event.key === 'Escape') { activeRef.current = null; setActive(null) }
       else if (event.key === 'Enter' && active && document.activeElement === sectionRef.current) { event.preventDefault(); press(active) }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [visible, disabled, press, active])
+  }, [visible, disabled, press, active, kinds])
 
-  const hint = active === 'left' ? 'Press ← again to open Buddies' : active === 'right' ? 'Press → again to open SkillShare' : 'Use ← or → (press twice), or tap a card'
+  const hint = active === 'left' ? 'Press ← again to open Buddies' : active === 'right' ? 'Press → again to open SkillShare' : kinds.length === 1 ? 'Press → twice, or tap the card' : 'Use ← or → (press twice), or tap a card'
 
   return <section
     ref={sectionRef}
-    id="swipe-decks"
+    id={id}
     tabIndex={-1}
-    className={`crossed-cards${revealed ? ' crossed-cards--revealed' : ''}${active ? ` crossed-cards--${active}` : ''}`}
-    aria-labelledby="crossed-cards-title"
+    className={`crossed-cards${revealed ? ' crossed-cards--revealed' : ''}${active ? ` crossed-cards--${active}` : ''}${kinds.length === 1 ? ' crossed-cards--single' : ''}`}
+    aria-labelledby={titleId}
   >
     <div className="crossed-cards-copy">
-      <span className="workspace-eyebrow">Meet people</span>
-      <h2 id="crossed-cards-title">Swipe to find your people</h2>
-      <p>Pick a deck. Pass on the left, like on the right. When you both like each other, you're connected.</p>
+      <span className="workspace-eyebrow">{eyebrow}</span>
+      <h2 id={titleId}>{heading}</h2>
+      <p>{description}</p>
       <p className="crossed-cards-hint" aria-live="polite">{hint}</p>
     </div>
     <div className="crossed-cards-stage">
-      <button type="button" className="phone-card phone-card--left" aria-pressed={active === 'left'} aria-label={active === 'left' ? 'Open the Buddies deck' : 'Choose the Buddies deck'} onClick={() => press('left')} disabled={disabled}>
+      {kinds.includes('buddy') && <button type="button" className="phone-card phone-card--left" aria-pressed={active === 'left'} aria-label={active === 'left' ? 'Open the Buddies deck' : 'Choose the Buddies deck'} onClick={() => press('left')} disabled={disabled}>
         <span className="phone-card-notch" aria-hidden="true" />
         <Users size={38} aria-hidden="true" />
         <strong>Buddies</strong>
         <span>Study partners and friends who share your courses and interests</span>
         <kbd aria-hidden="true"><ArrowLeft size={14} /><ArrowLeft size={14} /></kbd>
-      </button>
-      <button type="button" className="phone-card phone-card--right" aria-pressed={active === 'right'} aria-label={active === 'right' ? 'Open the SkillShare deck' : 'Choose the SkillShare deck'} onClick={() => press('right')} disabled={disabled}>
+      </button>}
+      {kinds.includes('skill') && <button type="button" className="phone-card phone-card--right" aria-pressed={active === 'right'} aria-label={active === 'right' ? 'Open the SkillShare deck' : 'Choose the SkillShare deck'} onClick={() => press('right')} disabled={disabled}>
         <span className="phone-card-notch" aria-hidden="true" />
         <ArrowRightLeft size={38} aria-hidden="true" />
         <strong>SkillShare</strong>
         <span>Trade what you know for what you want to learn</span>
         <kbd aria-hidden="true"><ArrowRight size={14} /><ArrowRight size={14} /></kbd>
-      </button>
+      </button>}
     </div>
   </section>
 }

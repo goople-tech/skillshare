@@ -28,7 +28,7 @@ import '../../runtime.css'
 
 export default function AppLayout() {
   const { pathname } = useLocation()
-  const workspaceShell = pathname === '/home' || pathname === '/profile'
+  const workspaceShell = pathname === '/home' || pathname === '/profile' || pathname === '/skillshare'
   return (
     <ClientRuntimeProvider><DeepSpaceAuthProvider>
       {/* The prerendered landing owns the document <title> and React drops it

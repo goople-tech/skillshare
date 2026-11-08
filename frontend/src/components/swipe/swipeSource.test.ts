@@ -31,4 +31,12 @@ describe('swipe data source', () => {
     expect((await source.loadDeck('skill')).map((c) => c.id)).not.toContain(deck[0].id)
     expect((await source.loadDeck('buddy')).map((c) => c.id)).toContain(deck[0].id)
   })
+  it('resolves only the authorized partner in the same conversation scope', async () => {
+    const source = new ApiSwipeSource(async <T,>(path: string) => {
+      expect(path).toBe('/conversations?kind=skill')
+      return [{ id: 9, kind: 'buddy', participant: { id: 4 } }, { id: 27, kind: 'skill', participant: { id: 5 } }, { id: 42, kind: 'skill', participant: { id: 4 } }] as T
+    })
+    expect(await source.resolveConversation('skill', '4')).toBe('42')
+    await expect(source.resolveConversation('skill', 'missing')).rejects.toThrow('Refresh your matches')
+  })
 })

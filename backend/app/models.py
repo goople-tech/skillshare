@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import String, Integer, ForeignKey, DateTime, Text, Table, Column, Float, UniqueConstraint
+from sqlalchemy import String, Integer, ForeignKey, DateTime, Text, Table, Column, Float, UniqueConstraint, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -68,3 +68,44 @@ class Swipe(Base):
     kind: Mapped[str] = mapped_column(String)        # buddy | skill
     direction: Mapped[str] = mapped_column(String)   # like | pass
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class SkillExchange(Base):
+    """One mutually liked SkillShare pair's scheduled lesson.
+
+    Keeping the pair unique makes this the deliberately small, one-lesson MVP.
+    Scheduling belongs to its participants; only their acknowledgements complete
+    the exchange. A later multi-lesson/bundle product needs a separate migration
+    and a lesson identifier, rather than overloading these acknowledgements.
+    """
+    __tablename__ = "skill_exchanges"
+    __table_args__ = (
+        UniqueConstraint("participant_low_id", "participant_high_id", name="uq_skill_exchange_pair"),
+        CheckConstraint("participant_low_id < participant_high_id", name="ck_skill_exchange_normalized_pair"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    participant_low_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    participant_high_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    created_by_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
+    scheduled_for: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    low_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    high_completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class SkillReview(Base):
+    """One participant's three-category rating for one mutually completed lesson."""
+    __tablename__ = "skill_reviews"
+    __table_args__ = (
+        UniqueConstraint("exchange_id", "reviewer_id", name="uq_skill_review_participant"),
+        CheckConstraint("learned BETWEEN 1 AND 5 AND taught BETWEEN 1 AND 5 AND collaboration BETWEEN 1 AND 5", name="ck_skill_review_scores"),
+        CheckConstraint("reviewer_id <> reviewee_id", name="ck_skill_review_no_self_rating"),
+    )
+    id: Mapped[int] = mapped_column(primary_key=True)
+    exchange_id: Mapped[int] = mapped_column(ForeignKey("skill_exchanges.id"), index=True)
+    reviewer_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    reviewee_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    learned: Mapped[int] = mapped_column(Integer)
+    taught: Mapped[int] = mapped_column(Integer)
+    collaboration: Mapped[int] = mapped_column(Integer)
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
