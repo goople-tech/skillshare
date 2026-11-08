@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useSession } from './useSession'
+import { useProfileName } from './useProfileName'
 import { useWorkspace } from './useWorkspaceData'
 import { WelcomeActions } from './WelcomeActions'
 import { RequestsPanel } from './RequestsPanel'
@@ -26,7 +27,7 @@ export function DashboardView() {
   const [profilePerson, setProfilePerson] = useState<Person | null>(null)
   const [taskError, setTaskError] = useState('')
   const editorRef = useRef<ProfileEditorHandle>(null)
-  const profileName = user?.name ?? user?.email?.split('@')[0] ?? 'Student'
+  const profileName = useProfileName(user?.name ?? user?.email?.split('@')[0] ?? 'Student')
   const initials = profileName.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase()
   const isNewStudent = mode === 'empty'
   const isSample = workspace.kind === 'preview'
@@ -72,7 +73,7 @@ export function DashboardView() {
   return <>
     {notice && <WorkspaceNotice message={notice} onClose={clearNotice} />}
     <main className="dashboard-content">
-      <WelcomeActions onFind={findBuddy} onOffer={navigateSkill} onProjects={() => navigate('/projects')} reading={isNewStudent} />
+      <WelcomeActions name={profileName} onFind={findBuddy} onOffer={navigateSkill} onProjects={() => navigate('/projects')} reading={isNewStudent} />
       {isSample && <div className="preview-mode-bar"><span className={isNewStudent ? 'preview-empty-label' : 'preview-sample-label'}><span className="summary-dot" aria-hidden="true" />{isNewStudent ? 'Getting started' : 'Sample workspace'}</span><select aria-label="Preview mode" value={mode} onChange={(event) => { setMode(event.target.value as 'sample' | 'empty'); void workspace.selectPreviewMode(event.target.value === 'empty'); clearNotice() }}><option value="sample">Example workspace</option><option value="empty">Getting-started view</option></select></div>}
       {!isSample && workspace.error && <ErrorPanel retry={workspace.retry} message={workspace.error} />}
       {isNewStudent ? <>
