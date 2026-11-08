@@ -9,10 +9,10 @@ export interface SwipeDataSource {
   resolveConversation?(deck: SwipeKind, personId: string): Promise<string>
 }
 
-/** Backend shapes (FastAPI `StudentMatchOut`, `SwipeCard`, `SwipeResult`, `SwipeMatch`). Other students' photos are not shared. */
+/** Backend shapes (FastAPI `StudentMatchOut`, `SwipeCard`, `SwipeResult`, `SwipeMatch`). Other students' photos are not shared. A chosen sticker is public. */
 export type ApiPublicProfile = {
   id: number; name: string; bio: string; courses: string; interests: string
-  skills_teach: string; skills_learn: string; mode: string; energy: string; photo?: string
+  skills_teach: string; skills_learn: string; mode: string; energy: string; photo?: string; sticker?: string
 }
 export type ApiSwipeCard = { profile: ApiPublicProfile; reasons: string[] }
 export type ApiSwipeResult = { matched: boolean; profile: ApiPublicProfile | null }
@@ -31,6 +31,7 @@ export const cardFromApi = (profile: ApiPublicProfile, reasons: string[] = []): 
   initials: initials(profile.name),
   bio: profile.bio,
   photo: profile.photo || undefined,
+  sticker: profile.sticker || undefined,
   courses: split(profile.courses),
   interests: split(profile.interests),
   teaches: split(profile.skills_teach),

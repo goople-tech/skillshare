@@ -17,6 +17,7 @@ type Profile = {
   mode?: string
   energy?: string
   photo?: string
+  sticker?: string
   xp?: number
 }
 

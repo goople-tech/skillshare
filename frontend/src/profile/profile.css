@@ -52,9 +52,16 @@
   gap: 16px;
 }
 
-.profile-avatar {
+.profile-avatar-wrap {
+  position: relative;
   width: 64px;
   height: 64px;
+  flex: none;
+}
+
+.profile-avatar {
+  width: 100%;
+  height: 100%;
   border-radius: 50%;
   display: grid;
   place-items: center;
@@ -65,6 +72,61 @@
   object-fit: cover;
 }
 
+.profile-sticker {
+  position: absolute;
+  right: -10px;
+  bottom: -12px;
+  width: 42px;
+  height: 42px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.sticker-palette { position: relative; }
+
+.sticker-palette-button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #173b5e;
+  cursor: pointer;
+}
+
+.sticker-palette-button:focus-visible { outline: 3px solid #b96745; outline-offset: 3px; }
+
+.sticker-palette-button svg { width: 34px; height: 34px; }
+
+.sticker-choices {
+  position: absolute;
+  z-index: 4;
+  top: 42px;
+  left: 0;
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  border: 1px solid #d8dfdf;
+  border-radius: 16px;
+  background: #fffdf8;
+}
+
+.sticker-choices button {
+  width: 52px;
+  height: 52px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: #f4efe6;
+  cursor: pointer;
+}
+
+.sticker-choices button[aria-selected='true'] { border-color: #173b5e; }
+
+.sticker-choices img { width: 100%; height: 100%; object-fit: contain; }
+
 .profile-photo-row {
   display: flex;
   align-items: center;
@@ -72,10 +134,9 @@
   margin-bottom: 16px;
 }
 
-.profile-photo-row .profile-avatar {
+.profile-photo-row .profile-avatar-wrap {
   width: 84px;
   height: 84px;
-  flex: none;
 }
 
 .profile-email {

@@ -8,6 +8,8 @@ describe('swipe data source', () => {
     const card = cardFromApi(profile, ['Also in CPSC 213'])
     expect(card).toMatchObject({ id: '4', initials: 'MC', courses: ['CPSC 213', 'MATH 200'], interests: ['hiking'], meets: 'In person', pace: 'Quiet sessions', reasons: ['Also in CPSC 213'] })
     expect(card.photo).toBeUndefined()
+    expect(card.sticker).toBeUndefined()
+    expect(cardFromApi({ ...profile, sticker: 'bird' }).sticker).toBe('bird')
     expect(Object.keys(card)).not.toContain('email')
   })
   it('calls the backend contract and reports matches only from the server', async () => {

@@ -8,6 +8,8 @@ export type SwipeCardView = {
   initials: string
   bio: string
   photo?: string
+  /** Public sticker chosen on the profile. Photos stay private. */
+  sticker?: string
   courses: string[]
   interests: string[]
   teaches: string[]

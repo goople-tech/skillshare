@@ -1,12 +1,19 @@
 from datetime import datetime
 from typing import Literal
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 Category = Literal["study", "skill", "ride"]
 Mode = Literal["in_person", "online", "either"]
 Energy = Literal["low", "medium", "high"]
 SwipeKind = Literal["buddy", "skill"]
 SwipeDirection = Literal["like", "pass"]
+STICKERS = {"bird", "stars", "sun", "cloud", "warm-cloud"}
+
+
+def _known_sticker(value: str | None) -> str | None:
+    if value in (None, "") or value in STICKERS:
+        return value
+    raise ValueError("Unknown sticker")
 
 
 class UserCreate(BaseModel):
@@ -20,6 +27,12 @@ class UserCreate(BaseModel):
     mode: Mode = "either"
     energy: Energy = "medium"
     photo: str = Field(default="", max_length=400_000)
+    sticker: str = ""
+
+    @field_validator("sticker")
+    @classmethod
+    def sticker_is_known(cls, value: str) -> str:
+        return _known_sticker(value) or ""
 
 
 class UserUpdate(BaseModel):
@@ -33,6 +46,12 @@ class UserUpdate(BaseModel):
     mode: Mode | None = None
     energy: Energy | None = None
     photo: str | None = Field(default=None, max_length=400_000)
+    sticker: str | None = None
+
+    @field_validator("sticker")
+    @classmethod
+    def sticker_is_known(cls, value: str | None) -> str | None:
+        return _known_sticker(value)
 
 
 class UserOut(BaseModel):
@@ -48,6 +67,7 @@ class UserOut(BaseModel):
     mode: str
     energy: str
     photo: str
+    sticker: str = ""
     xp: int
 
 
@@ -63,6 +83,7 @@ class StudentMatchOut(BaseModel):
     interests: str
     mode: Mode
     energy: Energy
+    sticker: str = ""
 
 
 class SkillRatingOut(BaseModel):
