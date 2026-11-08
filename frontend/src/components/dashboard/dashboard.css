@@ -44,10 +44,12 @@
 /* The three-line menu is mobile-only. This rule must come after .workspace-icon-btn, which would otherwise show it. */
 .workspace-icon-btn.workspace-nav-menu { display: none; }
 .notification-count {
-  position: absolute; top: -3px; right: -5px; box-sizing: border-box; min-width: 20px; height: 20px; padding: 0 4px;
-  display: flex; align-items: center; justify-content: center;
-  font: 700 12px/1 'DM Sans', sans-serif; font-variant-numeric: tabular-nums;
-  color: var(--cream); background: var(--orange); border: 2px solid var(--ivory); border-radius: 10px;
+  position: absolute; top: 1px; right: 1px; box-sizing: border-box;
+  display: grid; place-items: center; place-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  font-family: 'DM Sans', sans-serif; font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums;
+  line-height: 1; letter-spacing: 0; text-align: center;
+  color: var(--cream); background: var(--orange); border: 2px solid var(--ivory); border-radius: 999px;
 }
 .profile-menu-trigger { display: inline-flex; align-items: center; flex-direction: row; flex-wrap: nowrap; gap: 7px; padding: 3px 7px 3px 3px; color: var(--blue); }
 .profile-nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--blue-surface); color: var(--blue); font-size: 14px; }
@@ -150,9 +152,10 @@
 .profile-summary-top h2 { font-family: 'DM Sans', sans-serif; font-size: 18px; letter-spacing: -.015em; }
 .profile-summary-top p { color: var(--ink-muted); font-size: 13px; margin-top: 4px; }
 .verified-label { display: flex; align-items: center; gap: 3px; font-size: 12px; margin-top: 5px; color: var(--blue); }
-.profile-tags { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 7px; margin-top: 17px; }
-.profile-tags > span:first-child { min-width: 69px; color: var(--ink-muted); font-size: 13px; padding-top: 5px; font-weight: 500; }
-.profile-tags > div { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+.profile-facts { display: grid; grid-template-columns: max-content minmax(0, 1fr); column-gap: 16px; row-gap: 12px; margin-top: 17px; align-items: center; }
+.profile-tags { display: contents; }
+.profile-tags > span:first-child { color: var(--ink-muted); font-size: 13px; line-height: 1.45; font-weight: 500; white-space: nowrap; }
+.profile-tags > div { display: flex; flex-wrap: wrap; gap: 6px; min-width: 0; align-items: center; }
 .workspace-tag { padding: 4px 7px; border: 1px solid var(--border); border-radius: 4px; background: var(--blue-surface); color: var(--blue); font-size: 12px; line-height: 1.45; }
 .workspace-tag--sand { background: var(--sand); border-color: var(--sand); color: var(--blue); }
 .profile-add { color: var(--ink-muted); font-size: 13px; }
@@ -342,7 +345,7 @@
  .project-guide { gap: 24px; padding: 22px; }
  .project-guide h2 { font-size: 23px; line-height: 1.5; }
  .dashboard-privacy-note { font-size: 12px; }
- .profile-tags { gap: 8px 6px; }
+ .profile-facts { column-gap: 12px; row-gap: 10px; }
  .error-panel { align-items: flex-start; flex-wrap: wrap; padding: 20px; }
  .error-panel button { margin-left: 34px; }
  .notification-panel { top: 69px; right: 14px; }
