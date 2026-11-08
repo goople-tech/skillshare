@@ -16,6 +16,7 @@ class UserCreate(BaseModel):
     interests: str = ""
     mode: Mode = "either"
     energy: Energy = "medium"
+    photo: str = Field(default="", max_length=400_000)
 
 
 class UserUpdate(BaseModel):
@@ -28,6 +29,7 @@ class UserUpdate(BaseModel):
     interests: str | None = None
     mode: Mode | None = None
     energy: Energy | None = None
+    photo: str | None = Field(default=None, max_length=400_000)
 
 
 class UserOut(BaseModel):
@@ -42,6 +44,7 @@ class UserOut(BaseModel):
     interests: str
     mode: str
     energy: str
+    photo: str
     xp: int
 
 

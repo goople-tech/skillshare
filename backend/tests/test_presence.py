@@ -10,6 +10,7 @@ app.dependency_overrides[auth.current_email] = lambda: EMAIL['value']
 client = TestClient(app)
 
 def profile():
+    app.dependency_overrides[auth.current_email] = lambda: EMAIL['value']
     assert client.post('/users', json={'name': 'Presence test'}).status_code == 200
 
 def test_presence_persists_until_explicit_delete_and_rejects_out_of_range():

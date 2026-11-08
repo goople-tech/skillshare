@@ -19,6 +19,7 @@ client = TestClient(app)
 
 def as_user(email):
     EMAIL["value"] = email
+    app.dependency_overrides[auth.current_email] = lambda: EMAIL["value"]
 
 
 def test_create_profile_with_buddy_fields():
@@ -34,6 +35,16 @@ def test_defaults_when_fields_omitted():
     as_user("bob@student.ubc.ca")
     body = client.post("/users", json={"name": "Bob"}).json()
     assert (body["interests"], body["mode"], body["energy"]) == ("", "either", "medium")
+
+
+def test_photo_is_optional_and_saved():
+    as_user("cara@student.ubc.ca")
+    created = client.post("/users", json={"name": "Cara"}).json()
+    assert created["photo"] == ""
+    saved = client.put("/me", json={"photo": "data:image/jpeg;base64,abc"}).json()
+    assert saved["photo"] == "data:image/jpeg;base64,abc"
+    assert saved["name"] == "Cara"
+    assert client.put("/me", json={"photo": "x" * 400_001}).status_code == 422
 
 
 def test_partial_update_changes_only_sent_fields():
@@ -83,5 +94,5 @@ def test_old_database_gets_new_columns():
     finally:
         main.engine = original
     with old.connect() as c:
-        row = c.execute(sa.text("SELECT interests, mode, energy FROM users")).one()
-    assert tuple(row) == ("", "either", "medium")
+        row = c.execute(sa.text("SELECT interests, mode, energy, photo FROM users")).one()
+    assert tuple(row) == ("", "either", "medium", "")
