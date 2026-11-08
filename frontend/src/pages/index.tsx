@@ -3,9 +3,10 @@
  * The shared transition boundary is documented in AUTH_TRANSITION.md.
  */
 import { useState } from 'react'
-import { ArrowDown, ArrowRight, ArrowUpRight, Check, ChevronRight, GraduationCap, Heart, Menu, MoveHorizontal, ShieldCheck, Sparkles, Users, X } from 'lucide-react'
+import { ArrowDown, ArrowRight, ArrowUpRight, ChevronRight, GraduationCap, Heart, Menu, MoveHorizontal, ShieldCheck, Users, X } from 'lucide-react'
 import { Seo } from '../components/Seo'
 import { seo } from '../seo'
+import { useSignedIn } from '../components/landing/useSignedIn'
 import { Wordmark } from '../components/landing/Wordmark'
 import { BuddiesPreview } from '../components/landing/BuddiesPreview'
 import { SkillPreview } from '../components/landing/SkillPreview'
@@ -35,7 +36,10 @@ function StepGraphic({ kind }: { kind: string }) {
 
 export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const openLogin = () => { window.location.assign('/auth') } // real Auth0 login (see src/pages/auth.tsx)
+  const signedIn = useSignedIn()
+  // Signed in: go straight to the dashboard. Otherwise real Auth0 login (see src/pages/auth.tsx).
+  const openLogin = () => { window.location.assign(signedIn ? '/home' : '/auth') }
+  const loginLabel = signedIn ? 'Enter Dashboard' : 'Log In / Sign Up'
 
   return (
     <>
@@ -52,11 +56,11 @@ export default function Landing() {
           <div className="header-inner container">
             <Wordmark />
             <nav className="desktop-nav" aria-label="Main navigation">{navigation.map((link) => <a key={link.label} href={link.href}>{link.label}</a>)}</nav>
-            <div className="header-actions"><button className="button button--primary header-join" onClick={openLogin}>Log In / Sign Up</button></div>
+            <div className="header-actions"><button className="button button--primary header-join" onClick={openLogin}>{loginLabel}</button></div>
             <button className="menu-button" type="button" aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={24} /> : <Menu size={24} />}</button>
           </div>
           <div id="mobile-navigation" className={`mobile-navigation ${menuOpen ? 'mobile-navigation--open' : ''}`} hidden={!menuOpen}>
-            <nav aria-label="Mobile navigation">{navigation.map((link) => <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}<ChevronRight size={17} /></a>)}<button className="button button--primary" onClick={openLogin}>Log In / Sign Up</button></nav>
+            <nav aria-label="Mobile navigation">{navigation.map((link) => <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}<ChevronRight size={17} /></a>)}<button className="button button--primary" onClick={openLogin}>{loginLabel}</button></nav>
           </div>
         </header>
 
@@ -64,26 +68,34 @@ export default function Landing() {
           <section className="hero container" aria-labelledby="hero-title">
             <div className="hero-copy">
               <div className="eyebrow">A student community beyond the classroom</div>
-              <h1 id="hero-title">Find your people.<br />Make campus feel<br />like <em>home.</em></h1>
+              <h1 id="hero-title">Make Campus<br />feel like <em>home</em></h1>
               <p className="hero-description">Meet students who share your courses, interests, and energy. Exchange skills, start projects, and turn everyday campus moments into lasting connections.</p>
-              <div className="hero-actions"><button className="button button--primary button--large" onClick={openLogin}>Sign Up <ArrowUpRight size={19} /></button><a className="button button--outline button--large" href="#skillshare">Explore SkillShare <ArrowDown size={17} /></a></div>
-              <div className="hero-reassurance"><ShieldCheck size={17} /><span>Student verification required <i>·</i> Connect in person or online</span></div>
+              <div className="hero-reassurance"><ShieldCheck size={17} /><span>Student email required <i>·</i> Connect in person or online</span></div>
             </div>
             <div className="hero-visual">
               <div className="hero-campus-seal" aria-hidden="true"><CampusMark /><span>Rhythms of campus.<br />Room for you.</span></div>
               <div className="hero-photo-frame"><img src="/campus-community.jpg" alt="Students studying and spending time together around a table" width="1600" height="1067" fetchPriority="high" /></div>
-              <div className="hero-match-card floating-card"><div className="match-card-top"><span className="match-check"><Check size={16} /></span><div><strong>Study buddy matched</strong></div><Sparkles size={19} /></div><div className="match-card-session"><span className="course-pill">CPSC 210</span><span>·</span>Quiet study session<span className="session-arrow"><ArrowUpRight size={15} /></span></div></div>
+              <div className="hero-match-card floating-card"><div className="match-card-top"><strong>Study buddy matched</strong></div><div className="match-card-session"><span className="course-pill">CPSC 210</span><span>·</span>Quiet study session</div></div>
               <div className="hero-swap-card floating-card"><span className="swap-label">SKILL FOR SKILL</span><div><span>Python tutoring</span><MoveHorizontal size={19} /><span>Portfolio design</span></div></div>
 
             </div>
+            <a className="scroll-cue" href="#buddies" aria-label="Scroll down to explore"><ArrowDown size={26} strokeWidth={2} aria-hidden="true" /></a>
           </section>
 
 
-          <section className="pathways-section section" aria-labelledby="pathways-title">
+          <section className="journey-section section" aria-labelledby="pathways-title">
             <div className="container">
-              <div className="section-heading reveal"><span className="eyebrow">Belong through what you do</span><h2 id="pathways-title">Two ways to turn campus<br />into <em>community.</em></h2><p>Start with a conversation.</p></div>
-              <div className="pathways-grid">
-                <article className="pathway-card pathway-card--buddies reveal" id="buddies">
+              <div className="journey-heading reveal"><h2 id="pathways-title">Many ways to turn campus<br />into <em>community.</em></h2></div>
+              <ol className="timeline">
+                {steps.map((step, index) => (
+                  <li className={`timeline-item timeline-item--${index % 2 === 0 ? 'left' : 'right'} reveal`} key={step.number} id={index === 0 ? 'how-it-works' : undefined}>
+                    <span className="timeline-node" aria-hidden="true" />
+                    <article className="timeline-card timeline-card--step"><StepGraphic kind={step.symbol} /><div><h3>{step.title}</h3><p>{step.text}</p></div></article>
+                  </li>
+                ))}
+                <li className="timeline-item timeline-item--right reveal">
+                  <span className="timeline-node" aria-hidden="true" />
+                <article className="timeline-card timeline-card--pathway pathway-card pathway-card--buddies" id="buddies">
                   <div className="pathway-top"><span className="pathway-number">Buddies</span><span className="pathway-icon"><Users size={23} /></span></div>
                   <h3>Meet people you’ll<br /><em>actually click with.</em></h3>
                   <p>Discover study partners and potential friends through shared interests, courses, and energy—online or in person.</p>
@@ -91,7 +103,10 @@ export default function Landing() {
                   <BuddiesPreview />
                   <a className="pathway-link" href="#how-it-works">Explore Buddies <span><ArrowUpRight size={19} /></span></a>
                 </article>
-                <article className="pathway-card pathway-card--skills reveal" id="skillshare">
+                </li>
+                <li className="timeline-item timeline-item--left reveal">
+                  <span className="timeline-node" aria-hidden="true" />
+                <article className="timeline-card timeline-card--pathway pathway-card pathway-card--skills" id="skillshare">
                   <div className="pathway-top"><span className="pathway-number">SkillShare</span><span className="pathway-icon"><GraduationCap size={23} /></span></div>
                   <h3>Trade what you know.<br /><em>Learn what you love.</em></h3>
                   <p>Exchange skills, find peer tutoring, or meet collaborators for your next project.</p>
@@ -99,36 +114,26 @@ export default function Landing() {
                   <SkillPreview />
                   <a className="pathway-link" href="#skillshare-highlight">Explore SkillShare <span><ArrowUpRight size={19} /></span></a>
                 </article>
-              </div>
+                </li>
+                <li className="timeline-item timeline-item--right reveal" id="campus-activity">
+                  <span className="timeline-node" aria-hidden="true" />
+                  <article className="timeline-card timeline-card--wide" aria-labelledby="activity-title">
+                    <div className="activity-copy"><span className="eyebrow">Campus activity</span><h2 id="activity-title">See where campus<br />is <em>happening.</em></h2><p>Find active study spaces and social areas through an activity heatmap.</p><div className="activity-points"><span><span className="point-icon"><Users size={17} /></span>Find your kind of space</span><span><span className="point-icon"><ShieldCheck size={17} /></span>Connect with privacy in mind</span></div><p className="privacy-note">Illustrative preview. Activity is aggregated by area; individual locations are not shown.</p></div>
+                    <div><CampusMap /></div>
+                  </article>
+                </li>
+                <li className="timeline-item timeline-item--left reveal" id="skillshare-highlight">
+                  <span className="timeline-node" aria-hidden="true" />
+                  <article className="timeline-card timeline-card--wide" aria-labelledby="exchange-title">
+                    <div className="exchange-card-copy"><span className="eyebrow">SkillShare in practice</span><h2 id="exchange-title">A little knowledge<br />goes <em>both ways.</em></h2><p>Share what you know. Learn something new.</p></div>
+                    <div className="exchange-example"><div className="example-skill"><span className="example-label">I CAN TEACH</span><strong>Beginner guitar</strong><span className="example-reaction" aria-hidden="true">♫</span></div><div className="example-swap"><ArrowRight size={23} /><span>LET’S SWAP</span></div><div className="example-skill example-skill--learn"><span className="example-label">I’D LOVE HELP WITH</span><strong>Statistics</strong><span className="example-reaction" aria-hidden="true">∑</span></div></div>
+                    <div className="exchange-card-footer"><span><Users size={18} />Find teammates for projects that matter.</span><span><ShieldCheck size={18} />Post-session ratings build confidence.</span></div>
+                  </article>
+                </li>
+              </ol>
             </div>
           </section>
 
-          <section className="how-section section" id="how-it-works" aria-labelledby="how-title">
-            <div className="container">
-              <div className="section-heading section-heading--row reveal"><div><span className="eyebrow">How it works</span><h2 id="how-title">A simple place to <em>begin.</em></h2></div></div>
-              <div className="steps-grid">{steps.map((step) => <article className="step-card reveal" key={step.number}><div className="step-card-header"><StepGraphic kind={step.symbol} /><span className="step-dash" /><span>{step.number}</span></div><h3>{step.title}</h3><p>{step.text}</p></article>)}</div>
-
-            </div>
-          </section>
-
-          <section className="activity-section section" id="campus-activity" aria-labelledby="activity-title">
-            <div className="container activity-grid">
-              <div className="activity-copy reveal"><span className="eyebrow">Campus activity</span><h2 id="activity-title">See where campus<br />is <em>happening.</em></h2><p>Find active study spaces and social areas through an activity heatmap.</p><div className="activity-points"><span><span className="point-icon"><Users size={17} /></span>Find your kind of space</span><span><span className="point-icon"><ShieldCheck size={17} /></span>Connect with privacy in mind</span></div><p className="privacy-note">Illustrative preview. Activity is aggregated by area; individual locations are not shown.</p></div>
-              <div className="reveal"><CampusMap /></div>
-            </div>
-          </section>
-
-          <section className="exchange-section section" id="skillshare-highlight" aria-labelledby="exchange-title">
-            <div className="container exchange-card reveal">
-              <div className="exchange-card-copy"><span className="eyebrow">SkillShare in practice</span><h2 id="exchange-title">A little knowledge<br />goes <em>both ways.</em></h2><p>Share what you know. Learn something new.</p></div>
-              <div className="exchange-example"><div className="example-skill"><span className="example-label">I CAN TEACH</span><strong>Beginner guitar</strong><span className="example-reaction" aria-hidden="true">♫</span></div><div className="example-swap"><ArrowRight size={23} /><span>LET’S SWAP</span></div><div className="example-skill example-skill--learn"><span className="example-label">I’D LOVE HELP WITH</span><strong>Statistics</strong><span className="example-reaction" aria-hidden="true">∑</span></div></div>
-              <div className="exchange-card-footer"><span><Users size={18} />Find teammates for projects that matter.</span><span><ShieldCheck size={18} />Post-session ratings build confidence.</span></div>
-            </div>
-          </section>
-
-          <section className="closing-section section" aria-labelledby="closing-title">
-            <div className="container closing-card reveal"><span className="closing-mark" aria-hidden="true"><CampusMark /></span><h2 id="closing-title">Your next connection could be<br /><em>one introduction away.</em></h2><p>Join a student community built around friendship, mutual support, and making things together.</p><button className="button button--sand button--large" onClick={openLogin}>Join with University Email <ArrowUpRight size={19} /></button><span className="closing-small">Free for verified students. </span></div>
-          </section>
         </main>
 
         <footer className="site-footer">
