@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import String, Integer, ForeignKey, DateTime, Text, Table, Column, Float
+from sqlalchemy import String, Integer, ForeignKey, DateTime, Text, Table, Column, Float, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -56,3 +56,15 @@ class Presence(Base):
     lat: Mapped[float] = mapped_column(Float)
     lng: Mapped[float] = mapped_column(Float)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
+
+
+class Swipe(Base):
+    """One decision by `swiper` about `target` in one deck. Swiping again on the same person updates it."""
+    __tablename__ = "swipes"
+    __table_args__ = (UniqueConstraint("swiper_id", "target_id", "kind", name="uq_swipe_once_per_deck"),)
+    id: Mapped[int] = mapped_column(primary_key=True)
+    swiper_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    target_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    kind: Mapped[str] = mapped_column(String)        # buddy | skill
+    direction: Mapped[str] = mapped_column(String)   # like | pass
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

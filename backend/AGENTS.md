@@ -33,3 +33,9 @@ Dependencies are in `requirements.txt`; use an isolated virtual environment. Cop
 
 - `/listings` supports AND-combined `search`, `category`, `skill`, `course`, `interest`, `meeting`, `available`, and `limit` (1..100, default 50). Text filtering runs SQL-side using bounded, escaped case-insensitive substring matching. Meeting choices map to location text during the free-text MVP; `either` includes online/in-person/hybrid. Normalize this field before calling the filters semantic availability or recommendation matching. `available` counts `listing_members`; capacity must be positive.
 - Listing tests are required for every filter/ownership change. Add concurrency-safe join checks before claiming capacity enforcement under simultaneous writes.
+
+## Swipe decks
+
+- `app/swipe.py` (router included in `main.py`) owns `GET /swipe/{buddy|skill}/deck`, `POST /swipe` and `GET /swipe/matches`, backed by the `swipes` table (`models.Swipe`, one row per swiper/target/deck; swiping again updates it).
+- Decks rank by compatibility only and return `StudentMatchOut` (no email, stored photo, XP or location) plus plain-language `reasons`; ranking points never leave the server. A match is a mutual like in the same deck.
+- `seed_demo.py` adds clearly labelled demo students (`@demo.ubcver.invalid`, cannot sign in); `--like-back EMAIL` makes them like that account so a live demo can show a match; `--remove` deletes them. Tests: `tests/test_swipe.py`.
