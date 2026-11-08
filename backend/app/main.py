@@ -29,7 +29,8 @@ _add_missing_profile_columns()
 
 # Comma-separated list in .env overrides the default.
 CORS_ORIGINS = [o.strip() for o in os.getenv(
-    "CORS_ORIGINS", "http://localhost:5173,http://localhost:5174").split(",") if o.strip()]
+    "CORS_ORIGINS",
+    "http://localhost:5173,http://localhost:5174,https://skillshare.app.space").split(",") if o.strip()]
 
 app = FastAPI(title="UBC Hub API")
 
