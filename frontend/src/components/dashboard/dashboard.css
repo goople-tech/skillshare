@@ -539,3 +539,86 @@
   .workspace-mobile-nav { width: calc(100% - 24px); border-radius: 18px; }
   .dashboard-signin { font-size: 12px; padding: 10px 13px; }
 }
+
+/* Dashboard-only type and color. Layout, swipe, auth, heatmap, and messaging stay as they are. */
+body:has(.workspace-header) {
+  background:
+    radial-gradient(920px 440px at 0% -8%, #E0EAFF 0%, transparent 56%),
+    radial-gradient(760px 360px at 100% 0%, rgba(199, 124, 255, 0.18) 0%, transparent 50%),
+    #FFFEE0;
+}
+
+.workspace-header,
+.workspace-header-inner,
+.workspace-mobile-nav,
+.dashboard-content,
+.preview-signin,
+.dashboard-dialog,
+.workspace-notice,
+.notification-panel {
+  --ivory: #FFFEE0;
+  --cream: #FFFDF8;
+  --blue-surface: #E0EAFF;
+  --blue-surface-strong: #D4DFF8;
+  --sand: #EDE4FF;
+  --orange: #8B4FD6;
+  --ocean: #6E62A8;
+  --border: #D4D3E6;
+}
+
+.workspace-header-inner {
+  border-color: #D4D3E6;
+  background: #FFFEE0F2;
+  box-shadow: 0 10px 34px #5B2D8C14, 0 1px 0 #FFFFFFB0 inset;
+}
+
+.workspace-nav-item:hover,
+.workspace-nav-item--active {
+  background: #E0EAFF;
+  color: var(--blue);
+}
+
+.profile-menu-trigger { background: #E0EAFF; }
+.workspace-mobile-nav {
+  border-color: #D4D3E6;
+  background: #FFFEE0F2;
+}
+
+.dashboard-content,
+.preview-signin,
+.dashboard-dialog {
+  font-family: 'DM Sans', sans-serif;
+}
+
+.dashboard-content h1,
+.dashboard-content h2,
+.dashboard-content h3,
+.preview-signin h1,
+.dashboard-dialog h2,
+.request-title h3,
+.session-item h3,
+.person-match h3,
+.empty-panel h3,
+.profile-summary-top h2,
+.notification-head h2 {
+  font-family: 'Lora', Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.03em;
+}
+
+.dashboard-welcome p,
+.preview-signin p {
+  font-family: 'DM Sans', sans-serif;
+}
+
+.notification-count { background: #C77CFF; color: #173B5E; border-color: #FFFEE0; }
+.workspace-nav-item--active { color: #173B5E; }
+.button--primary:hover { background: #234E73; }
+
+.dashboard-content ::selection,
+.workspace-header ::selection,
+.preview-signin ::selection,
+.dashboard-dialog ::selection {
+  color: #173B5E;
+  background: #E0EAFF;
+}
