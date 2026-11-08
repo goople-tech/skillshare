@@ -1,6 +1,28 @@
 import { useEffect, useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { api, setTokenGetter } from './api'
+import './decor.css'
+
+function CloudDecor({ placement }) {
+  if (placement === 'login') {
+    return (
+      <div className="cloud-decor cloud-decor-login" aria-hidden="true">
+        <img className="cloud cloud-puff cloud-puff-left" src="/clouds/cloud-pastel.png" alt="" />
+        <img className="cloud cloud-puff cloud-puff-mid" src="/clouds/cloud-pastel.png" alt="" />
+        <img className="cloud cloud-puff cloud-puff-right" src="/clouds/cloud-pastel.png" alt="" />
+        <img className="cloud cloud-bank" src="/clouds/cloud-cream.png" alt="" />
+      </div>
+    )
+  }
+
+  return (
+    <div className="cloud-decor cloud-decor-home" aria-hidden="true">
+      <img className="cloud cloud-blue" src="/clouds/cloud-blue.png" alt="" />
+      <img className="cloud cloud-pastel" src="/clouds/cloud-pastel.png" alt="" />
+      <img className="cloud cloud-cream" src="/clouds/cloud-cream.png" alt="" />
+    </div>
+  )
+}
 
 const CATEGORIES = ['', 'study', 'skill', 'ride']
 const emptyListing = { category: 'study', title: '', description: '', tag: '', location: '', time: '', capacity: 4 }
@@ -28,12 +50,17 @@ export default function App() {
 
   if (!isAuthenticated) {
     return (
-      <div style={{ maxWidth: 400, margin: '40px auto', fontFamily: 'sans-serif' }}>
-        <h2>UBC Hub</h2>
-        <p>Log in with your UBC email. We'll email you a one-time code, no password needed.</p>
-        <button onClick={() => loginWithRedirect({ authorizationParams: { connection: 'email' } })}>
-          Log in with UBC email
-        </button>
+      <div className="sky-page">
+        <CloudDecor placement="login" />
+        <main className="login-wrap">
+          <div className="login-card">
+            <h2>UBC Hub</h2>
+            <p>Log in with your UBC email. We'll email you a one-time code, no password needed.</p>
+            <button onClick={() => loginWithRedirect({ authorizationParams: { connection: 'email' } })}>
+              Log in with UBC email
+            </button>
+          </div>
+        </main>
       </div>
     )
   }
@@ -48,16 +75,19 @@ export default function App() {
   }
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', fontFamily: 'sans-serif', padding: 16 }}>
-      <h1>UBC Hub</h1>
-      <p>
-        Logged in as {user.name} ({user.email}) · XP: {user.xp}{' '}
-        <button onClick={() => setEditing(true)}>Edit profile</button>{' '}
-        <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>Log out</button>
-      </p>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <ProfileSummary user={user} />
-      <Listings user={user} setUser={setUser} setError={setError} />
+    <div className="sky-page">
+      <CloudDecor placement="home" />
+      <div style={{ maxWidth: 800, margin: '0 auto', fontFamily: 'sans-serif', padding: 16, position: 'relative', zIndex: 1 }}>
+        <h1>UBC Hub</h1>
+        <p>
+          Logged in as {user.name} ({user.email}) · XP: {user.xp}{' '}
+          <button onClick={() => setEditing(true)}>Edit profile</button>{' '}
+          <button onClick={() => logout({ logoutParams: { returnTo: window.location.origin } })}>Log out</button>
+        </p>
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        <ProfileSummary user={user} />
+        <Listings user={user} setUser={setUser} setError={setError} />
+      </div>
     </div>
   )
 }

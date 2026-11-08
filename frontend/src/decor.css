@@ -1,0 +1,242 @@
+/* Decorative sky. Login handlers are unchanged; these layers do not receive clicks. */
+
+.site:has(.hero-sky) {
+  position: relative;
+  z-index: 0;
+}
+
+.hero-sky {
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(1000px 460px at 12% -10%, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(900px 420px at 100% 0%, rgba(190, 216, 236, 0.55), transparent 55%),
+    linear-gradient(180deg, #e3f0f8 0%, #f5f8fb 55%, rgba(246, 243, 238, 0) 100%);
+}
+
+.hero-sky .cloud {
+  position: absolute;
+  height: auto;
+  user-select: none;
+}
+
+.hero-sky .cloud-puff-left {
+  width: min(220px, 18vw);
+  top: 12%;
+  left: 3%;
+}
+
+.hero-sky .cloud-puff-mid {
+  width: min(140px, 11vw);
+  top: 18%;
+  left: 36%;
+}
+
+.hero-sky .cloud-puff-right {
+  width: min(120px, 10vw);
+  top: 11%;
+  right: 6%;
+}
+
+.hero-sky .cloud-bank {
+  width: 100%;
+  left: 0;
+  right: 0;
+  bottom: -8%;
+  top: auto;
+  min-width: 0;
+  transform: none;
+}
+
+body:has(.sky-page) {
+  margin: 0;
+  background: #e7f1f8;
+}
+
+body:has(.login-wrap) {
+  overflow: hidden;
+}
+
+.sky-page {
+  min-height: 100vh;
+  min-height: 100dvh;
+  position: relative;
+  background:
+    radial-gradient(1000px 460px at 12% -10%, rgba(255, 255, 255, 0.75), transparent 60%),
+    radial-gradient(900px 420px at 100% 0%, rgba(190, 216, 236, 0.55), transparent 55%),
+    linear-gradient(180deg, #e3f0f8 0%, #f5f8fb 52%, #f6f3ee 100%);
+  color: #16324f;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.sky-page:has(.login-wrap) {
+  height: 100dvh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.cloud-decor {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.cloud {
+  position: absolute;
+  height: auto;
+  user-select: none;
+}
+
+.cloud-decor-login .cloud-puff-left {
+  width: min(250px, 20vw);
+  top: 5%;
+  left: 7%;
+}
+
+.cloud-decor-login .cloud-puff-mid {
+  width: min(168px, 13vw);
+  top: 15%;
+  left: 39%;
+}
+
+.cloud-decor-login .cloud-puff-right {
+  width: min(132px, 11vw);
+  top: 6%;
+  right: 16%;
+}
+
+.cloud-decor-login .cloud-bank {
+  width: 148vw;
+  min-width: 880px;
+  top: 54%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+/* Keep these in the margins beside the 800px column. */
+.cloud-decor-home .cloud-blue {
+  width: min(360px, 70vw);
+  top: -48px;
+  right: max(-80px, calc(50vw - 780px));
+}
+
+.cloud-decor-home .cloud-pastel {
+  width: min(340px, 68vw);
+  left: max(-90px, calc(50vw - 760px));
+  bottom: -36px;
+}
+
+.cloud-decor-home .cloud-cream {
+  width: min(420px, 78vw);
+  right: max(-120px, calc(50vw - 840px));
+  bottom: -64px;
+}
+
+.login-wrap {
+  height: 100dvh;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px 20px 16vh;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+.login-card {
+  width: min(400px, 100%);
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  padding: 36px 32px 32px;
+  text-align: center;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 20px;
+  box-shadow: 0 18px 48px rgba(16, 32, 51, 0.1);
+}
+
+.login-card h2,
+.login-card p {
+  margin: 0;
+}
+
+.login-card h2 {
+  font-size: 1.75rem;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.login-card p {
+  color: #3d5166;
+  line-height: 1.5;
+}
+
+.login-card button {
+  width: 100%;
+  margin-top: 6px;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 18px;
+  background: #002145;
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.login-card button:hover {
+  background: #16325c;
+}
+
+.login-card button:focus-visible {
+  outline: 3px solid #f2c14e;
+  outline-offset: 3px;
+}
+
+@media (max-width: 720px) {
+  .cloud-decor-login .cloud-puff-left {
+    width: 34vw;
+    left: 4%;
+    top: 4%;
+  }
+
+  .cloud-decor-login .cloud-puff-mid {
+    width: 22vw;
+    left: 40%;
+    top: 13%;
+  }
+
+  .cloud-decor-login .cloud-puff-right {
+    width: 18vw;
+    right: 6%;
+    top: 5%;
+  }
+
+  .cloud-decor-login .cloud-bank {
+    top: 62%;
+    min-width: 760px;
+  }
+
+  .cloud-decor-home .cloud-blue,
+  .cloud-decor-home .cloud-pastel,
+  .cloud-decor-home .cloud-cream {
+    opacity: 0.55;
+  }
+
+  .login-card {
+    padding: 28px 22px 24px;
+  }
+}
