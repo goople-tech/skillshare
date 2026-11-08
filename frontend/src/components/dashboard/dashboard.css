@@ -46,10 +46,10 @@
   font: 600 12px/16px 'DM Sans', sans-serif; text-align: center;
   color: var(--cream); background: var(--orange); border: 2px solid var(--ivory); border-radius: 50%;
 }
-.profile-menu-trigger { gap: 7px; padding: 3px 7px 3px 3px; color: var(--blue); }
+.profile-menu-trigger { display: inline-flex; align-items: center; flex-direction: row; flex-wrap: nowrap; gap: 7px; padding: 3px 7px 3px 3px; color: var(--blue); }
 .profile-nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--blue-surface); color: var(--blue); font-size: 14px; }
 .dropdown-menu-label small, [data-slot="dropdown-menu-label"] small { display: block; margin-bottom: 10px; }
-.profile-menu-trigger svg { width: 13px; }
+.profile-menu-trigger > svg { width: 13px; height: 13px; flex: 0 0 13px; }
 .dashboard-content {
   width: min(1280px, calc(100% - 64px));
   margin-inline: auto; padding: 38px 0 64px;
@@ -348,6 +348,23 @@
  .dialog-body { padding: 25px 22px; }
  .preview-signin h1 { font-size: 29px; }
 }
+
+/* Row geometry for shared pill navigation and compact exchange results. */
+.search-trigger { flex: 0 0 176px; }
+.workspace-header-inner > .notification-btn { margin-left: 0; }
+.profile-menu-trigger .profile-nav-avatar { width: 35px; height: 35px; flex: 0 0 35px; }
+.exchange-skills { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px; text-align: center; }
+.exchange-skill { display: inline-block; vertical-align: middle; }
+.exchange-skills > svg { flex: 0 0 15px; padding-bottom: 0; }
+
+@media (max-width: 1260px) {
+  .search-trigger { flex-basis: 140px; }
+}
+@media (min-width: 1210px) {
+  .workspace-header-inner > .search-trigger + .notification-btn { margin-left: 8px; }
+}
+
+/* Keep the corrected geometry ahead of the later presentation token block. */
 @media (prefers-reduced-motion: reduce) {
  .workspace-nav-item, .button--text, .button--quiet, .button, .skeleton { transition: none; animation: none; }
  .spin { animation: none; }
@@ -485,7 +502,7 @@
 
 /* Compact floating pill navigation shared with the public landing header. */
 .workspace-header { top: 14px; padding-inline: 0; border: 0; background: transparent; margin-inline: auto; max-width: min(1600px, 100%); }
-.workspace-header-inner { min-height: 64px; height: 64px; width: fit-content; max-width: calc(100% - 40px); padding: 0 10px 0 22px; gap: clamp(18px, 3.2vw, 44px); border: 1px solid #D8DFDF; border-radius: 999px; background: #F8F5EEF2; box-shadow: 0 10px 34px #173B5E1F, 0 1px 0 #FFFFFFB0 inset; }
+.workspace-header-inner { min-height: 64px; height: 64px; width: fit-content; max-width: calc(100% - 40px); padding: 0 11px 0 22px; gap: clamp(18px, 3.2vw, 44px); border: 1px solid #D8DFDF; border-radius: 999px; background: #F8F5EEF2; box-shadow: 0 10px 34px #173B5E1F, 0 1px 0 #FFFFFFB0 inset; }
 .workspace-nav { margin: 0; gap: 3px; border-radius: 0; background: transparent; }
 .workspace-nav-item { min-height: 40px; padding: 8px 13px; border-radius: 999px; font-size: 13px; font-weight: 500; }
 .workspace-nav-item::after { display: none; }

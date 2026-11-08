@@ -19,6 +19,8 @@
 - Profile forms and offer forms are async: guard duplicate submissions, show local busy/errors and never silently drop failed backend mutations.
 - Base UI dropdowns use explicit non-modal behavior. Preserve Escape/outside dismissal and focus restoration. Cancel native dialogs through cleanup, not duplicate state-driven event callbacks.
 - Preserve keyboard search, reduced-motion scrolling, semantic regions, visible focus, and accessible notification names that update with read count. Require no horizontal overflow at 390px.
+- Header utility controls are independent shrink-sized siblings rather than absolutely positioned controls; when the visible search includes its keyboard hint, its reserved width plus the bell gap must prevent collision. Profile triggers must explicitly be single-row inline flex with equal fixed avatar width/height and a non-shrinking caret; Base UI menus alone don't normalize a plain button's content box.
+- SkillShare exchange headlines wrap as one center-aligned `offer ↔ request` unit. Don't detach either skill or the arrow onto unsemantic independent lines for narrow layouts. Verify these with element geometry, not only snapshots, at 1440, 1260, 1210 and mobile widths.
 
 ## Location sharing
 

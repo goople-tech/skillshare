@@ -66,6 +66,41 @@ test('390px layout, centered notifications/search, and readable controls work', 
   expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(390)
 })
 
+test('header controls stay separate and exchange skills share their arrow on desktop', async ({ page }) => {
+  await openPreview(page)
+  const dimensions = async () => page.evaluate(() => {
+    const rect = (selector: string) => {
+      const bounds = document.querySelector(selector)?.getBoundingClientRect()
+      if (!bounds) throw new Error(`Missing ${selector}`)
+      return { left: bounds.left, right: bounds.right, top: bounds.top, bottom: bounds.bottom }
+    }
+    return {
+      root: rect('html'),
+      search: rect('[data-testid="workspace-search-trigger"]'), bell: rect('.notification-btn'),
+      avatar: rect('.profile-menu-trigger [data-slot="avatar"]'), caret: rect('.profile-menu-trigger > svg'),
+      offer: rect('.exchange-skills .exchange-skill:first-child'), arrow: rect('.exchange-skills > svg'),
+      learn: rect('.exchange-skills .exchange-skill:last-child'),
+    }
+  })
+  const assertLayout = async () => {
+    const geometry = await dimensions()
+    expect(geometry.search.right).toBeLessThanOrEqual(geometry.bell.left)
+    expect(Math.abs((geometry.avatar.top + geometry.avatar.bottom) / 2 - (geometry.caret.top + geometry.caret.bottom) / 2)).toBeLessThanOrEqual(1)
+    expect(geometry.offer.right).toBeLessThanOrEqual(geometry.arrow.left)
+    expect(geometry.arrow.right).toBeLessThanOrEqual(geometry.learn.left)
+    expect(Math.abs((geometry.arrow.top + geometry.arrow.bottom) / 2 - (geometry.learn.top + geometry.learn.bottom) / 2)).toBeLessThanOrEqual(1)
+  }
+  await assertLayout()
+  for (const width of [1260, 1210, 1200, 1101, 1100, 679]) {
+    await page.setViewportSize({ width, height: 900 })
+    if (width > 1200) await assertLayout()
+    expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(width)
+  }
+  await page.screenshot({ path: 'test-results/dashboard-alignment-desktop.png', fullPage: true })
+  await page.setViewportSize({ width: 390, height: 844 })
+  expect(await page.locator('html').evaluate(element => element.scrollWidth)).toBe(390)
+})
+
 test('profile, offers, connections and exchanges all use the shared data source', async ({ page }) => {
   await page.route('**/presence/**', (route) => route.fulfill({ json: route.request().url().endsWith('/presence/me') ? { sharing: false } : { areas: [], active_students: 0, refresh_seconds: 30, ttl_seconds: 3600 } }))
   const errors = captureConsoleErrors(page)
