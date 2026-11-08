@@ -22,7 +22,7 @@ test.describe('Smoke tests', () => {
     const errors = captureConsoleErrors(page)
     await page.goto('/')
     await waitForApp(page)
-    await expect(page.getByTestId('static-landing')).toBeVisible()
+    await expect(page.locator('#main-content')).toBeVisible()
     expect(errors).toEqual([])
   })
 
@@ -31,7 +31,7 @@ test.describe('Smoke tests', () => {
     // <head>. Exactly one of each: index.html ships no static description or
     // canonical, because React 19 would not dedupe against them on mount.
     await page.goto('/')
-    await expect(page.getByTestId('static-landing')).toBeVisible()
+    await expect(page.locator('#main-content')).toBeVisible()
     await expect(page).toHaveTitle(/\S/)
     expect(await page.locator('head meta[name="description"]').count()).toBe(1)
     expect(await page.locator('head link[rel="canonical"]').count()).toBe(1)
@@ -47,7 +47,7 @@ test.describe('Smoke tests', () => {
       if (new URL(ws.url()).pathname.startsWith('/ws/')) offenders.push(`ws: ${ws.url()}`)
     })
     await page.goto('/')
-    await expect(page.getByTestId('static-landing')).toBeVisible()
+    await expect(page.locator('#main-content')).toBeVisible()
     await page.waitForTimeout(1500)
     expect(offenders).toEqual([])
   })
