@@ -12,7 +12,15 @@ BACKEND="$APP_DIR/backend"
 
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
-apt-get install -y python3 python3-venv python3-pip git caddy ufw
+apt-get install -y python3 python3-venv python3-pip git ufw curl gpg debian-keyring debian-archive-keyring apt-transport-https
+
+# Caddy is not in Ubuntu 22.04's default repositories, so add Caddy's official apt repository.
+if ! command -v caddy >/dev/null 2>&1; then
+  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor --yes -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' -o /etc/apt/sources.list.d/caddy-stable.list
+  apt-get update -y
+  apt-get install -y caddy
+fi
 
 id skillshare >/dev/null 2>&1 || useradd --system --create-home --shell /usr/sbin/nologin skillshare
 
