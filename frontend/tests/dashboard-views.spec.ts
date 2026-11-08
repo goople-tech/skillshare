@@ -68,8 +68,8 @@ test('390px layout, centered notifications/search, and readable controls work', 
 
 test('header controls stay separate and exchange skills share their arrow on desktop', async ({ page }) => {
   await openPreview(page)
-  const dimensions = async () => page.evaluate(() => {
-    const rect = (selector: string) => {
+    const dimensions = async () => page.evaluate(() => {
+      const rect = (selector: string) => {
       const bounds = document.querySelector(selector)?.getBoundingClientRect()
       if (!bounds) throw new Error(`Missing ${selector}`)
       return { left: bounds.left, right: bounds.right, top: bounds.top, bottom: bounds.bottom }
@@ -77,6 +77,8 @@ test('header controls stay separate and exchange skills share their arrow on des
     return {
       root: rect('html'),
       search: rect('[data-testid="workspace-search-trigger"]'), bell: rect('.notification-btn'),
+      searchLabel: rect('[data-testid="workspace-search-trigger"] > span'),
+      searchHint: rect('[data-testid="workspace-search-trigger"] > kbd'),
       avatar: rect('.profile-menu-trigger [data-slot="avatar"]'), caret: rect('.profile-menu-trigger > svg'),
       offer: rect('.exchange-skills .exchange-skill:first-child'), arrow: rect('.exchange-skills > svg'),
       learn: rect('.exchange-skills .exchange-skill:last-child'),
@@ -85,6 +87,10 @@ test('header controls stay separate and exchange skills share their arrow on des
   const assertLayout = async () => {
     const geometry = await dimensions()
     expect(geometry.search.right).toBeLessThanOrEqual(geometry.bell.left)
+    expect(geometry.search.right - geometry.bell.left).toBeLessThanOrEqual(-5)
+    expect(geometry.searchLabel.right).toBeLessThanOrEqual(geometry.search.right)
+    expect(geometry.searchHint.left).toBeGreaterThanOrEqual(geometry.searchLabel.right)
+    expect(geometry.searchHint.right).toBeLessThanOrEqual(geometry.search.right)
     expect(Math.abs((geometry.avatar.top + geometry.avatar.bottom) / 2 - (geometry.caret.top + geometry.caret.bottom) / 2)).toBeLessThanOrEqual(1)
     expect(geometry.offer.right).toBeLessThanOrEqual(geometry.arrow.left)
     expect(geometry.arrow.right).toBeLessThanOrEqual(geometry.learn.left)

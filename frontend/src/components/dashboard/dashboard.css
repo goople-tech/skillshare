@@ -350,7 +350,9 @@
 }
 
 /* Row geometry for shared pill navigation and compact exchange results. */
-.search-trigger { flex: 0 0 176px; }
+.search-trigger { flex: 0 0 176px; overflow: hidden; }
+.search-trigger span { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.search-trigger kbd { flex: 0 0 auto; margin-left: 10px; }
 .workspace-header-inner > .notification-btn { margin-left: 0; }
 .profile-menu-trigger .profile-nav-avatar { width: 35px; height: 35px; flex: 0 0 35px; }
 .exchange-skills { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 7px; text-align: center; }
