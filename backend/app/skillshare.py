@@ -41,10 +41,9 @@ def _csv_column_contains(column, term: str):
     """Match a complete, trimmed CSV entry in SQL on PostgreSQL or SQLite."""
     normalized = func.lower(literal(",") + func.replace(column, " ", "") + literal(","))
     needle = term.strip().lower().replace(" ", "")
-    # Literal delimiter tokens prevent prefix/substring matches. No wildcards.
-    return or_(
-        func.instr(normalized, "," + needle + ",") > 0,
-    )
+    # Literal delimiter tokens prevent prefix/substring matches. autoescape neutralises % and _.
+    # LIKE with an explicit ESCAPE works on PostgreSQL (instr() does not exist there) and on SQLite.
+    return normalized.contains("," + needle + ",", autoescape=True)
 
 
 def _category_condition(category: schemas.SkillCategory):

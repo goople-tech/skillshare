@@ -107,6 +107,34 @@ SKILL_DESCRIPTIONS = ["Happy to swap an hour each.", "No experience needed, I'll
                       "Looking for someone patient to trade skills with."]
 SKILL_PLACES = ["Nest lounge", "Online (Zoom)", "Starbucks at the Nest", "Rose Garden", "AMS Student Nest, top floor", "Ponderosa Commons",
                 "Online (Discord)", "Barn Coffee", "Totem Park common room"]
+# ---- project ideas: (title, pitch, skills needed). Skills mostly come from what the demo students teach,
+# so the "teammates" panel finds people. A few use skills nobody teaches, to show the empty case. ----
+PROJECT_IDEAS = [
+    ("Study group scheduler", "A tiny app that finds a time everyone in a study group is free. Need people who can build and design it.", ["react", "sql", "figma", "javascript"]),
+    ("Campus food map", "Crowd-sourced map of cheap, good food around UBC with student reviews.", ["react", "python", "figma", "photography"]),
+    ("Stats explained podcast", "Short episodes that explain first-year stats without the jargon.", ["statistics", "video editing", "public speaking"]),
+    ("Chem lab notes app", "Something to log lab results and check calculations before you hand them in.", ["chemistry", "javascript", "figma"]),
+    ("Language swap cafe", "A weekly meet-up where we swap Spanish, French and Japanese over coffee.", ["spanish", "french", "japanese"]),
+    ("Open mic poster series", "Posters and a small site for the monthly open mic night.", ["illustration", "figma", "photography"]),
+    ("Plant-watering robot", "Arduino build that waters a dorm plant. Looking for people who like hardware.", ["arduino", "3d printing", "python"]),
+    ("Hiking trip planner", "Plan group hikes with carpools, gear lists and weather. Early stage.", ["react", "git", "photography"]),
+    ("Budget tracker for students", "Spreadsheet-turned-app for tracking tuition, rent and groceries.", ["excel", "sql", "python"]),
+    ("Climate data dashboard", "Visualize local climate data and what it means for campus.", ["r", "statistics", "python"]),
+    ("Intramural stats site", "Standings and player stats for intramural leagues.", ["sql", "react", "statistics"]),
+    ("Recipe zine for small kitchens", "A printed and online zine of recipes that work in a dorm kitchen.", ["cooking", "illustration", "meal prep"]),
+    ("Interview prep buddies", "Mock interviews and resume swaps for co-op season.", ["interview prep", "resume review", "public speaking"]),
+    ("Calculus visual guides", "Short visual explainers for tough calc ideas. Pitch is still rough.", ["calculus", "illustration", "video editing"]),
+    ("Campus lost and found", "A simple board for lost items, with photos and a claim button.", ["react", "python", "figma", "sql"]),
+    ("Piano and guitar jam night", "Casual jam sessions, all levels. Need a few instruments and one organizer.", ["piano", "guitar", "violin"]),
+    ("Machine learning reading group", "Read one paper a week and try to reproduce a small result.", ["machine learning", "python", "latex"]),
+    ("Chess club ladder", "A ladder website with ratings and match scheduling.", ["chess", "javascript", "sql"]),
+    ("Sustainability audit of the Nest", "Measure waste and energy use, then suggest simple changes.", ["excel", "presentations", "statistics"]),
+    ("Study snack swap", "Swap homemade snacks during exam season.", ["baking", "meal prep"]),
+    ("Essay feedback circle", "Small group that reads each other's drafts before deadlines.", ["essay writing", "study techniques", "public speaking"]),
+    ("Dorm yoga mornings", "Twenty-minute stretch sessions before 9 am classes.", ["yoga", "running"]),
+]
+
+
 DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 TIME_STYLES = ["{d} {h}", "{d} after class", "This {d} at {h}", "Tomorrow {h}", "{d} {h}\u2013{h2}", "{d} evening", "Weekends {h}"]
 HOURS = ["10am", "11am", "12:30pm", "2pm", "3:30pm", "5pm", "6pm", "7:30pm"]
@@ -155,6 +183,7 @@ def make_students(rng, db, models, count):
            for i in range(count)]
     rng.shuffle(xps)
     users = []
+    major_of = {}
     for i, name in enumerate(names[:count]):
         email = name.lower().replace(" ", ".") + DOMAIN
         major = majors[i % len(majors)]  # round-robin so every major shows up
@@ -171,6 +200,19 @@ def make_students(rng, db, models, count):
         # photo and sticker are deliberately left empty
         db.add(user)
         users.append(user)
+        major_of[user.email] = major
+    # Coverage: make sure every teachable skill that a project asks for is taught by someone, otherwise the
+    # teammates panel is empty almost everywhere. Skills no major teaches (photography, cooking) stay empty on purpose.
+    taught = {t for u in users for t in _terms(u.skills_teach)}
+    for _, _, skills in PROJECT_IDEAS:
+        for skill in skills:
+            if skill in taught:
+                continue
+            candidates = [u for u in users if skill in MAJORS[major_of[u.email]]["teach"]]
+            if candidates:
+                owner = rng.choice(candidates)
+                owner.skills_teach = f"{owner.skills_teach}, {skill}"
+                taught.add(skill)
     db.commit()
     return users
 
@@ -211,6 +253,21 @@ def make_swipes(rng, db, models, users):
                 counts[kind][0 if like else 1] += 1
                 if like:
                     liked[kind].add((me.id, other.id))
+    # Return likes: when someone likes a person they have not been judged by yet, that person often likes back.
+    # Good fits (one teaches what the other wants) return the like most of the time, others now and then.
+    db.flush()  # autoflush is off, so write the swipes above before reading them back
+    by_id = {u.id: u for u in users}
+    decided = {(row.swiper_id, row.target_id) for row in db.query(models.Swipe).filter(models.Swipe.kind == "skill", models.Swipe.swiper_id.in_(ids))}
+    for swiper_id, target_id in sorted(liked["skill"]):
+        if (target_id, swiper_id) in decided:
+            continue
+        a, b = by_id[swiper_id], by_id[target_id]
+        fit = bool(_terms(b.skills_teach) & _terms(a.skills_learn)) or bool(_terms(a.skills_teach) & _terms(b.skills_learn))
+        if rng.random() < (0.6 if fit else 0.2):
+            db.add(models.Swipe(swiper_id=target_id, target_id=swiper_id, kind="skill", direction="like"))
+            decided.add((target_id, swiper_id))
+            liked["skill"].add((target_id, swiper_id))
+            counts["skill"][0] += 1
     db.commit()
     mutual = {kind: sorted({tuple(sorted(p)) for p in liked[kind] if (p[1], p[0]) in liked[kind]}) for kind in liked}
     total_pairs = len(users) * (len(users) - 1)
@@ -219,33 +276,44 @@ def make_swipes(rng, db, models, users):
     return mutual["skill"], summary
 
 
-def make_exchanges_and_reviews(rng, db, models, pairs):
-    """Lessons for some matches. Done ones get ratings from both sides."""
+def make_exchanges_and_reviews(rng, db, models, users, pairs):
+    """Lessons for mutually matched pairs: most completed and rated, some only scheduled, some with no lesson.
+
+    Each student gets a hidden "how good a teacher" level, so ratings differ from person to person
+    (roughly 3.0 to 5.0) and the rating sort and minimum-rating filter have something to do.
+    Many students end up with no reviews at all, which shows the "no reviews yet" case (never a zero).
+    """
+    ids = [u.id for u in users]
+    old = db.query(models.SkillExchange).filter(models.SkillExchange.participant_low_id.in_(ids), models.SkillExchange.participant_high_id.in_(ids)).all()
+    for ex in old:  # only exchanges between two demo students; real users' lessons are untouched
+        db.query(models.SkillReview).filter_by(exchange_id=ex.id).delete(synchronize_session=False)
+        db.delete(ex)
+    db.flush()
+
+    quality = {u.id: rng.uniform(3.0, 5.0) for u in users}
+    score = lambda who: max(1, min(5, round(rng.gauss(quality[who], 0.5))))
     now = datetime.now(timezone.utc)
-    done = upcoming = 0
-    for low, high in pairs:
-        if db.query(models.SkillExchange).filter_by(participant_low_id=low, participant_high_id=high).first():
-            continue
-        roll = rng.random()
-        if roll < 0.4:      # completed lesson, both sides confirmed
-            when = now - timedelta(days=rng.randint(1, 20))
-            ex = models.SkillExchange(participant_low_id=low, participant_high_id=high, created_by_id=low,
+    pairs = list(pairs)
+    rng.shuffle(pairs)
+    n_done, n_sched = round(len(pairs) * 0.65), round(len(pairs) * 0.2)
+    for i, (low, high) in enumerate(pairs):
+        if i < n_done:        # completed lesson, both sides confirmed and rated
+            when = now - timedelta(days=rng.randint(1, 25))
+            ex = models.SkillExchange(participant_low_id=low, participant_high_id=high, created_by_id=rng.choice([low, high]),
                                       scheduled_for=when, low_completed_at=when + timedelta(hours=2),
                                       high_completed_at=when + timedelta(hours=3))
             db.add(ex)
             db.flush()
             for reviewer, reviewee in ((low, high), (high, low)):
-                db.add(models.SkillReview(exchange_id=ex.id, reviewer_id=reviewer, reviewee_id=reviewee,
-                                          learned=rng.randint(3, 5), taught=rng.randint(3, 5),
-                                          collaboration=rng.randint(3, 5)))
-            done += 1
-        elif roll < 0.7:    # scheduled for later, nobody has confirmed
-            db.add(models.SkillExchange(participant_low_id=low, participant_high_id=high, created_by_id=high,
-                                        scheduled_for=now + timedelta(days=rng.randint(1, 10))))
-            upcoming += 1
-        # the rest stay matches with no lesson yet, so "average: null" cases exist too
+                if rng.random() < 0.9:  # now and then someone has not rated yet
+                    db.add(models.SkillReview(exchange_id=ex.id, reviewer_id=reviewer, reviewee_id=reviewee,
+                                              learned=score(reviewee), taught=score(reviewee), collaboration=score(reviewee)))
+        elif i < n_done + n_sched:  # scheduled for later, nobody has confirmed
+            db.add(models.SkillExchange(participant_low_id=low, participant_high_id=high, created_by_id=rng.choice([low, high]),
+                                        scheduled_for=now + timedelta(days=rng.randint(1, 10), hours=rng.randint(0, 8))))
+        # the rest stay matches with no lesson yet
     db.commit()
-    return done, upcoming
+    return n_done, n_sched, len(pairs) - n_done - n_sched
 
 
 def make_listings(rng, db, models, users, count=36):
@@ -302,6 +370,28 @@ HOTSPOTS = [
 ]
 
 
+def make_projects(rng, db, models, users, count=18):
+    """Student projects looking for teammates, posted by varied owners over the last two weeks.
+
+    Every project has a different owner. A couple have no pitch, and a few need a skill nobody
+    teaches, so the teammates panel also shows its empty case.
+    """
+    for old in db.query(models.Project).filter(models.Project.owner_id.in_([u.id for u in users])).all():
+        db.delete(old)
+    db.flush()
+    now = datetime.utcnow()
+    ideas = rng.sample(PROJECT_IDEAS, k=min(count, len(PROJECT_IDEAS)))
+    owners = rng.sample(users, k=min(len(ideas), len(users)))
+    for i, (title, pitch, skills) in enumerate(ideas):
+        owner = owners[i % len(owners)]
+        needed = skills[: rng.randint(max(1, len(skills) - 1), len(skills))]
+        db.add(models.Project(owner_id=owner.id, title=title, pitch="" if i % 9 == 4 else pitch,
+                              skills_needed=",".join(needed),
+                              created_at=now - timedelta(hours=rng.randint(1, 14 * 24))))
+    db.commit()
+    return len(ideas)
+
+
 def make_presence(rng, db, models, users, share=0.8):
     """Live location points: a few tight clumps, some scattered outliers, and not everyone shares.
 
@@ -356,8 +446,24 @@ def like_back(db, models, users, email):
                 row.direction = "like"
             else:
                 db.add(models.Swipe(swiper_id=user.id, target_id=me.id, kind=kind, direction="like"))
+    now = datetime.now(timezone.utc)
+    # Lesson 1: yesterday, the demo student already confirmed. You confirm it, then rate it.
+    # Lesson 2: tomorrow, so the "upcoming" state has something to show.
+    for user, when, they_confirmed in ((users[0], now - timedelta(days=1), True), (users[1], now + timedelta(days=1), False)):
+        low, high = sorted((me.id, user.id))
+        ex = db.query(models.SkillExchange).filter_by(participant_low_id=low, participant_high_id=high).first()
+        if not ex:
+            ex = models.SkillExchange(participant_low_id=low, participant_high_id=high, created_by_id=user.id, scheduled_for=when)
+            db.add(ex)
+        ex.scheduled_for, ex.low_completed_at, ex.high_completed_at = when, None, None
+        if they_confirmed:
+            if user.id == low:
+                ex.low_completed_at = when + timedelta(hours=2)
+            else:
+                ex.high_completed_at = when + timedelta(hours=2)
     db.commit()
     print(f"6 demo students now like {me.email} in both decks: like them back to see a match.")
+    print(f"2 lessons with you: one with {users[0].name} for you to confirm and rate, one with {users[1].name} tomorrow.")
 
 
 def remove_all(db, models):
@@ -373,6 +479,7 @@ def remove_all(db, models):
     db.query(models.SkillExchange).filter(models.SkillExchange.id.in_(exchange_ids)).delete(synchronize_session=False)
     db.query(models.Swipe).filter(models.Swipe.swiper_id.in_(ids) | models.Swipe.target_id.in_(ids)).delete(synchronize_session=False)
     db.query(models.Presence).filter(models.Presence.user_id.in_(ids)).delete(synchronize_session=False)
+    db.query(models.Project).filter(models.Project.owner_id.in_(ids)).delete(synchronize_session=False)
     for listing in db.query(models.Listing).filter(models.Listing.owner_id.in_(ids)).all():
         listing.members = []
         db.delete(listing)
@@ -387,7 +494,7 @@ def main():
     parser.add_argument("--students", type=int, default=30, help="how many fake students (max %d)" % (len(FIRST) * len(LAST)))
     parser.add_argument("--seed", type=int, default=1, help="same seed, same data")
     parser.add_argument("--like-back", metavar="EMAIL", help="make 6 demo students like this real account")
-    parser.add_argument("--only", choices=["users", "swipes", "listings", "presence"], help="stop after creating the students")
+    parser.add_argument("--only", choices=["users", "swipes", "lessons", "listings", "projects", "presence"], help="stop after creating the students")
     parser.add_argument("--remove", action="store_true", help="delete all demo data")
     parser.add_argument("--target", choices=["local", "remote"], default="local")
     parser.add_argument("--allow-remote", action="store_true", help="required with --target remote")
@@ -414,18 +521,27 @@ def main():
             _, summary = make_swipes(rng, db, models, users)
             report_swipes(summary)
             return
+        if args.only == "lessons":
+            pairs, _ = make_swipes(rng, db, models, users)
+            done, upcoming, none = make_exchanges_and_reviews(rng, db, models, users, pairs)
+            print(f"Lessons:    {done} completed (with ratings), {upcoming} scheduled, {none} matches with no lesson yet")
+            return
         if args.only == "listings":
             n = make_listings(rng, db, models, users)
             print(f"Listings:   {n}")
+            return
+        if args.only == "projects":
+            print(f"Projects:   {make_projects(rng, db, models, users)}")
             return
         if args.only == "presence":
             report_presence(make_presence(rng, db, models, users))
             return
         pairs, summary = make_swipes(rng, db, models, users)
         report_swipes(summary)
-        done, upcoming = make_exchanges_and_reviews(rng, db, models, pairs)
-        print(f"Lessons:    {done} completed with ratings, {upcoming} scheduled")
+        done, upcoming, none = make_exchanges_and_reviews(rng, db, models, users, pairs)
+        print(f"Lessons:    {done} completed (with ratings), {upcoming} scheduled, {none} matches with no lesson yet")
         print(f"Listings:   {make_listings(rng, db, models, users)}")
+        print(f"Projects:   {make_projects(rng, db, models, users)}")
         report_presence(make_presence(rng, db, models, users))
         if args.like_back:
             like_back(db, models, users, args.like_back)
