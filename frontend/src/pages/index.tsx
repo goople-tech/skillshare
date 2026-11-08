@@ -37,6 +37,7 @@ export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [signupOpen, setSignupOpen] = useState(false)
   const openSignup = () => { setMenuOpen(false); setSignupOpen(true) }
+  const openLogin = () => { window.location.assign('/auth') } // real Auth0 login (see src/pages/auth.tsx)
 
   return (
     <>
@@ -47,11 +48,11 @@ export default function Landing() {
           <div className="header-inner container">
             <Wordmark />
             <nav className="desktop-nav" aria-label="Main navigation">{navigation.map((link) => <a key={link.label} href={link.href}>{link.label}</a>)}</nav>
-            <div className="header-actions"><button className="login-button" onClick={openSignup}>Log In</button><button className="button button--primary header-join" onClick={openSignup}>Join with University Email <ArrowUpRight size={16} /></button></div>
+            <div className="header-actions"><button className="login-button" onClick={openLogin}>Log In</button><button className="button button--primary header-join" onClick={openSignup}>Join with University Email <ArrowUpRight size={16} /></button></div>
             <button className="menu-button" type="button" aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'} aria-expanded={menuOpen} aria-controls="mobile-navigation" onClick={() => setMenuOpen(!menuOpen)}>{menuOpen ? <X size={24} /> : <Menu size={24} />}</button>
           </div>
           <div id="mobile-navigation" className={`mobile-navigation ${menuOpen ? 'mobile-navigation--open' : ''}`} hidden={!menuOpen}>
-            <nav aria-label="Mobile navigation">{navigation.map((link) => <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}<ChevronRight size={17} /></a>)}<button className="login-button" onClick={openSignup}>Log In<ChevronRight size={17} /></button><button className="button button--primary" onClick={openSignup}>Join with University Email <ArrowUpRight size={16} /></button></nav>
+            <nav aria-label="Mobile navigation">{navigation.map((link) => <a key={link.label} href={link.href} onClick={() => setMenuOpen(false)}>{link.label}<ChevronRight size={17} /></a>)}<button className="login-button" onClick={openLogin}>Log In<ChevronRight size={17} /></button><button className="button button--primary" onClick={openSignup}>Join with University Email <ArrowUpRight size={16} /></button></nav>
           </div>
         </header>
 
