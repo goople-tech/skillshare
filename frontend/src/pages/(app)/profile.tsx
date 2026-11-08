@@ -32,7 +32,7 @@ function ProfileGate() {
   useEffect(() => {
     if (!isAuthenticated) return
     let cancelled = false
-    api.me().then((loaded: Profile) => {
+    api.me<Profile>().then((loaded: Profile) => {
       if (!cancelled) setUser(loaded)
     }).catch((err: Error) => {
       if (cancelled) return
@@ -50,7 +50,7 @@ function ProfileGate() {
   if (!user && !needsProfile) return <p style={{ padding: 16 }}>Loading profile…</p>
 
   const save = async (fields: Profile) => {
-    const saved = needsProfile ? await api.signup(fields) : await api.updateMe(fields)
+    const saved = needsProfile ? await api.signup<Profile>(fields) : await api.updateMe<Profile>(fields)
     setUser(saved)
     setNeedsProfile(false)
     return saved

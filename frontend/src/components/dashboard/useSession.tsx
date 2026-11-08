@@ -2,22 +2,24 @@
  * Login always goes through `${origin}/auth` (the Auth0 app's Allowed Callback URL) and comes back to /home. */
 import { useCallback, useMemo, useState, type ReactNode } from 'react'
 import { Auth0Provider, useAuth0 } from '@auth0/auth0-react'
+import { useClientRuntime } from '../../client-runtime'
 import { dropStaleAuth0Cookies } from '../AuthShell'
 
 export type SessionUser = { name: string; email: string; imageUrl?: string }
 
 export function SessionProvider({ children }: { children: ReactNode }) {
-  useState(() => { dropStaleAuth0Cookies(import.meta.env.VITE_AUTH0_CLIENT_ID) })
+  const { auth0Domain, auth0ClientId, auth0Audience } = useClientRuntime()
+  useState(() => { dropStaleAuth0Cookies(auth0ClientId) })
   return (
     <Auth0Provider
-      domain={import.meta.env.VITE_AUTH0_DOMAIN}
-      clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
       authorizationParams={{
         redirect_uri: `${window.location.origin}/auth`,
-        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        audience: auth0Audience,
         scope: 'openid profile email',
       }}
       cacheLocation="localstorage"
+      domain={auth0Domain}
+      clientId={auth0ClientId}
     >
       {children}
     </Auth0Provider>

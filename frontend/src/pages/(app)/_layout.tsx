@@ -23,12 +23,14 @@ import Navigation from '../../components/Navigation'
 import { useToast } from '@/components/ui'
 import { APP_NAME, SCOPE_ID } from '../../constants'
 import { schemas } from '../../schemas'
+import { ClientRuntimeProvider } from '../../client-runtime'
+import '../../runtime.css'
 
 export default function AppLayout() {
   const { pathname } = useLocation()
   const workspaceShell = pathname === '/home' || pathname === '/profile'
   return (
-    <DeepSpaceAuthProvider>
+    <ClientRuntimeProvider><DeepSpaceAuthProvider>
       {/* The prerendered landing owns the document <title> and React drops it
           when <Seo> unmounts, so every route without <Seo> sets its own. */}
       <title>{APP_NAME}</title>
@@ -42,7 +44,7 @@ export default function AppLayout() {
           </main>
         </div>
       </AuthBoot>
-    </DeepSpaceAuthProvider>
+    </DeepSpaceAuthProvider></ClientRuntimeProvider>
   )
 }
 

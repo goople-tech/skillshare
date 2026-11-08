@@ -3,6 +3,7 @@
  * Allowed Callback URLs. See AUTH_TRANSITION.md. */
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Auth0Provider, useAuth0 } from '@auth0/auth0-react'
+import { useClientRuntime } from '../client-runtime'
 
 /** A leftover "is authenticated" cookie with no cached session makes Auth0 try a silent
  * login through a hidden iframe, which hangs ("Loading…") when the browser blocks
@@ -45,17 +46,18 @@ function LoginGate({ children }: { children: ReactNode }) {
 }
 
 export function AuthShell({ title, children }: { title: string; children: ReactNode }) {
-  useState(() => { dropStaleAuth0Cookies(import.meta.env.VITE_AUTH0_CLIENT_ID) })
+  const { auth0Domain, auth0ClientId, auth0Audience } = useClientRuntime()
+  useState(() => { dropStaleAuth0Cookies(auth0ClientId) })
   return (
     <Auth0Provider
-      domain={import.meta.env.VITE_AUTH0_DOMAIN}
-      clientId={import.meta.env.VITE_AUTH0_CLIENT_ID}
       authorizationParams={{
         redirect_uri: `${window.location.origin}/auth`,
-        audience: import.meta.env.VITE_AUTH0_AUDIENCE,
+        audience: auth0Audience,
         scope: 'openid profile email',
       }}
       cacheLocation="localstorage"
+      domain={auth0Domain}
+      clientId={auth0ClientId}
       onRedirectCallback={(appState) => {
         // Logins started elsewhere (e.g. /home) ask to be sent back there.
         const back = appState?.returnTo

@@ -32,6 +32,8 @@ import {
   registerStaticRoutes,
   resolveAuth,
 } from './src/server/http-routes.js'
+import { registerFastApiProxy } from './src/server/fastapi-proxy.js'
+import { registerClientConfigRoute } from './src/server/client-config.js'
 import { registerRealtimeRoutes } from './src/server/realtime-routes.js'
 
 // Dynamic deploy reads this manifest to create the app's DO bindings.
@@ -105,6 +107,10 @@ export interface Env extends DOBindings<typeof __DO_MANIFEST__> {
   /** Comma-separated exact Expo/native callback URIs (for example, myapp://auth/callback). */
   NATIVE_AUTH_REDIRECT_URIS?: string
   APP_NAME: string
+  VITE_API_URL?: string
+  VITE_AUTH0_DOMAIN?: string
+  VITE_AUTH0_CLIENT_ID?: string
+  VITE_AUTH0_AUDIENCE?: string
   /** Immutable record-scope and platform identity. */
   DEEPSPACE_APP_ID: string
   OWNER_USER_ID: string
@@ -144,6 +150,8 @@ registerAgent(app, {
   inApp: schemas.some((schema) => schema.name === AI_CHATS_SCHEMA.name),
 })
 registerPlatformProxyRoutes(app)
+registerFastApiProxy(app)
+registerClientConfigRoute(app)
 registerStaticRoutes(app)
 
 // Hono registers ONE error handler (last onError wins), and its default is

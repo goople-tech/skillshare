@@ -4,10 +4,10 @@ export type HeatPoint = { lat: number; lng: number }
 export type HeatResponse = { points: HeatPoint[]; refresh_seconds: number; ttl_seconds: number }
 export type MyPresence = { sharing: boolean; lat?: number | null; lng?: number | null }
 
-export const fetchHeatmap = () => apiRequest<HeatResponse>('/presence/heatmap')
-export const fetchMyPresence = () => apiRequest<MyPresence>('/presence/me')
-export const savePresence = (point: HeatPoint) => apiRequest<MyPresence>('/presence', { method: 'POST', body: JSON.stringify(point) })
-export const deletePresence = () => apiRequest<MyPresence>('/presence', { method: 'DELETE' })
+export const fetchHeatmap = () => apiRequest<HeatResponse>('/api/campus/presence/heatmap')
+export const fetchMyPresence = () => apiRequest<MyPresence>('/api/campus/presence/me')
+export const savePresence = (point: HeatPoint) => apiRequest<MyPresence>('/api/campus/presence', { method: 'POST', body: JSON.stringify(point) })
+export const deletePresence = () => apiRequest<MyPresence>('/api/campus/presence', { method: 'DELETE' })
 export function browserLocation(): Promise<HeatPoint> {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) { reject(new Error('This browser cannot read your location.')); return }
