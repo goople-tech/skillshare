@@ -1269,3 +1269,55 @@ h1 em, h2 em, h3 em { color: var(--orange); font-weight: 400; }
   .hero-visual .hero-swap-card { padding-top: 56px; padding-bottom: 26px; }
   .hero-visual .hero-campus-seal { padding-top: 44px; padding-bottom: 20px; }
 }
+
+/* ---- Phone version (≤ 680px): its own layout choices, not a squeezed desktop ---- */
+@media (max-width: 680px) {
+  /* The scroll arrow belongs to the desktop first screen; on a phone the hero is taller than the screen */
+  .scroll-cue { display: none; }
+
+  /* Hero copy */
+  .hero .eyebrow { font-size: 13px; letter-spacing: .02em; }
+  .hero-reassurance { flex-direction: column; align-items: center; gap: 6px; text-align: center; }
+  .hero-reassurance span { text-align: center; }
+  .hero-reassurance i { display: block; height: 4px; overflow: hidden; margin: 0; }
+
+  /* Hero photo + clouds: readable text, clouds sized for a ~300px photo */
+  .hero-visual .hero-campus-seal { left: -8px; top: -30px; padding: 46px 30px 22px; }
+  .hero-visual .hero-campus-seal span { font-size: 11px; }
+  .hero-visual .hero-campus-seal svg { width: 24px; height: 26px; }
+  .hero-visual .hero-swap-card { right: -10px; top: 22px; padding: 54px 40px 28px; }
+  .hero-visual .hero-swap-card .swap-label { font-size: 9px; }
+  .hero-visual .hero-swap-card > div { flex-direction: column; gap: 3px; font-size: 12px; }
+  .hero-visual .hero-swap-card > div > svg { transform: rotate(90deg); }
+  .hero-visual .hero-match-card { left: -8px; bottom: -34px; padding: 62px 44px 30px; }
+  .hero-visual .hero-match-card .match-card-top strong { font-size: 14px; }
+  .hero-visual .hero-match-card .match-card-session, .hero-visual .hero-match-card .course-pill { font-size: 11px; }
+
+  /* Room for the clouds hanging below the photo; heading no longer tucked under them */
+  .journey-section { margin-top: 0; padding-top: 64px; }
+  .journey-heading h2 br { display: none; }
+  .journey-heading h2 { font-size: 30px; }
+
+  /* Timeline: one line on the left, full-width cards, comfortable reading sizes */
+  .timeline { margin-top: 36px; row-gap: 28px; }
+  .timeline-card--step { padding: 20px 20px; min-height: 0; }
+  .timeline-card--step h3 { font-size: 21px; }
+  .timeline-card--step p { font-size: 15px; }
+  .timeline-card.pathway-card h3, .timeline-card--wide h2 { font-size: 26px; }
+  .timeline-card.pathway-card > p, .timeline-card--wide p { font-size: 15px; }
+  .timeline-card.pathway-card .tag-list li { font-size: 12px; padding: 6px 10px; }
+  .timeline-card--wide .activity-points { font-size: 14px; }
+  .timeline-card--wide .exchange-card-footer { font-size: 13px; gap: 10px 20px; }
+  .timeline-card--wide .exchange-example { flex-direction: column; align-items: stretch; }
+  .timeline-card--wide .example-swap { flex-direction: row; justify-content: center; }
+  .timeline-card--wide .example-swap svg { transform: rotate(90deg); }
+}
+
+/* Phone footer: brand on top, links in two roomy columns */
+@media (max-width: 680px) {
+  .footer-main { flex-direction: column; align-items: flex-start; gap: 28px; }
+  .footer-brand { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .footer-links { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 20px; width: 100%; }
+  .footer-links > div:last-child { grid-column: 1 / -1; }
+  .footer-links a { white-space: nowrap; }
+}

@@ -19,6 +19,7 @@ client = TestClient(app)
 
 def as_user(email):
     EMAIL["value"] = email
+    app.dependency_overrides[auth.current_email] = lambda: EMAIL["value"]
 
 
 def test_create_profile_with_buddy_fields():
