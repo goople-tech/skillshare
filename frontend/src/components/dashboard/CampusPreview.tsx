@@ -1,7 +1,16 @@
-import { ArrowUpRight, MapPin, ShieldCheck } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { MapPin } from 'lucide-react'
+import { LiveHeatmap } from './LiveHeatmap'
 
-export function CampusPreview({ empty = false }: { empty?: boolean }) {
-  if (empty) return <section id="campus-activity" className="dashboard-card campus-compact"><div className="card-heading"><div><h2>Campus activity</h2><p>Find spaces to study or collaborate.</p></div><MapPin size={18} /></div><p className="campus-preview-place">Explore examples of active campus spaces—not live location tracking.</p><div className="campus-note"><ShieldCheck size={15} /> Only broad areas are shown. Precise student locations stay private.</div><button className="button button--text" onClick={() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })}>View activity details <ArrowUpRight size={14} /></button></section>
-  return <section id="campus-activity" className="dashboard-card campus-compact"><div className="card-heading"><div><h2>Campus activity</h2><p>Popular study areas, not precise locations.</p></div><MapPin size={18} /></div><div className="mini-campus-map" aria-hidden="true"><span className="map-path map-path--vertical" /><span className="map-path map-path--horizontal" /><span className="map-building map-building--one" /><span className="map-building map-building--two" /><span className="map-building map-building--three" /><span className="map-area map-area--one" /><span className="map-area map-area--two" /><span className="map-area map-area--three" /></div><div className="campus-legend"><span>Visual preview · area-level activity</span><span>More active <i className="campus-dot" /> <span>Less active <i className="campus-dot campus-dot--quiet" /></span></span></div><div className="campus-note"><ShieldCheck size={15} /> Illustrative areas, not live student data.</div><Link className="button button--text" to="/?focus=campus-activity#campus-activity">Explore Campus Activity <ArrowUpRight size={14} /></Link></section>
+export function CampusPreview() {
+  return (
+    <section id="campus-activity" className="dashboard-card campus-compact" tabIndex={-1}>
+      <div className="card-heading">
+        <div>
+          <h2>Campus activity</h2>
+        </div>
+        <MapPin size={18} />
+      </div>
+      <LiveHeatmap />
+    </section>
+  )
 }

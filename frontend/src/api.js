@@ -7,9 +7,11 @@ export const setTokenGetter = (fn) => { getToken = fn }
 
 async function apiRequest(path, options = {}) {
   const token = await getToken()
+  const { keepalive, ...rest } = options
   const res = await fetch(BASE + path, {
     headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    ...options,
+    ...rest,
+    keepalive: Boolean(keepalive),
   })
   const data = await res.json()
   if (!res.ok) throw new Error(typeof data.detail === 'string' ? data.detail : JSON.stringify(data.detail))
@@ -26,6 +28,10 @@ export const api = {
   aiDraft: (text) => request('/ai/draft', { method: 'POST', body: JSON.stringify({ text }) }),
   aiMatch: () => apiRequest('/ai/match', { method: 'POST' }),
   skillMatches: () => apiRequest('/skillshare/matches'),
+  heatmap: () => apiRequest('/presence/heatmap'),
+  myPresence: () => apiRequest('/presence/me'),
+  updatePresence: (point) => apiRequest('/presence', { method: 'POST', body: JSON.stringify(point) }),
+  clearPresence: () => apiRequest('/presence', { method: 'DELETE', keepalive: true }),
 }
 
 export { apiRequest }

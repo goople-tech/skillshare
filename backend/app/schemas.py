@@ -73,3 +73,25 @@ class DraftRequest(BaseModel):
     text: str  # e.g. a pasted Reddit post
 
 
+class PresenceUpdate(BaseModel):
+    lat: float
+    lng: float
+
+
+class HeatPoint(BaseModel):
+    lat: float
+    lng: float
+
+
+class HeatmapOut(BaseModel):
+    points: list[HeatPoint]
+    refresh_seconds: int
+    ttl_seconds: int
+
+
+class PresenceMine(BaseModel):
+    sharing: bool
+    lat: float | None = None
+    lng: float | None = None
+
+

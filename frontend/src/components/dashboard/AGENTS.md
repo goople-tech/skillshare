@@ -1,7 +1,7 @@
 # Dashboard workspace
 
 ## Product intent
-`/home` is a task-oriented workspace, not a marketing page. Requests and next actions take priority. Use the shared blue/ivory palette; keep body copy and controls readable (normally 14–18px), don't reintroduce tiny repeated captions or fake match scores. Preserve the two-column desktop layout and the attention-first mobile order.
+`/home` is a task-oriented workspace, not a marketing page. Requests and next actions take priority. Use the shared blue/ivory palette; keep body copy and controls readable (normally 14–18px). Use conversational copy and one clear example note rather than repeated explanatory paragraphs; don't reintroduce tiny repeated captions or fake match scores. Preserve the two-column desktop layout and the attention-first mobile order.
 
 ## Data-source boundary (future backend)
 
@@ -21,4 +21,4 @@
 - Preserve keyboard search, reduced-motion scrolling, semantic regions, visible focus, and accessible notification names that update with read count. Require no horizontal overflow at 390px.
 
 ## Verification
-Run `npm run type-check`, `npm run lint`, `npm run build`, `npm run test:unit`, the dashboard browser specs, and the smoke/API regression checks. Dialog tests must exercise actual pointer and keyboard behavior and validate centering plus enlarged text. Preview remains active until the backend contract/profile privacy/deployment API configuration is supplied intentionally.
+Run typecheck/lint/build/unit tests, the scoped Playwright dashboard specs, and real runtime smoke/API checks. Centering and 390px/no-overflow must keep passing after CSS changes.
