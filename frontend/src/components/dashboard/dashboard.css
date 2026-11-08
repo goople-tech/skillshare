@@ -437,6 +437,8 @@
 .live-campus-map { height: 360px; margin-top: 10px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
 .live-campus-areas { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 6px; }
 .live-campus-areas li { padding: 8px 10px; border-radius: 8px; background: rgba(23, 59, 94, 0.06); color: #173b5e; font-size: 14px; }
+.heat-area-label { background: #fffdf8; border: 1px solid #d8dfdf; color: #173b5e; border-radius: 8px; box-shadow: none; font-weight: 700; font-size: 12px; padding: 3px 7px; }
+.heat-area-label::before { display: none; }
 .live-campus-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 12px; }
 .live-campus-status { margin: 8px 0 0; color: var(--ink-muted); font-size: 13px; line-height: 1.5; }
 .project-guide { margin-top: 21px; padding: 22px 25px; background: var(--ivory); border-color: transparent; }

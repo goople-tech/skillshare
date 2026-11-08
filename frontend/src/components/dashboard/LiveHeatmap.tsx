@@ -1,13 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
-import L, { type CircleMarker, type Layer } from 'leaflet'
+import L, { type CircleMarker } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { HeatLayer } from 'leaflet.heat'
 import { setTokenGetter } from '../../api'
 import { browserLocation, savePresence, deletePresence, fetchHeatmap, fetchMyPresence, timeToExpire, type MyPresence } from '../../presence'
 import { browserMessage } from './presenceMessages'
 
-type CompatibleHeatLayer = InstanceType<typeof HeatLayer> & Layer
 type HeatSpot = { area: { lat: number; lng: number }; count: number }
 const CAMPUS: [number, number] = [49.2628, -123.2505]
 const PLACES: Array<[string, number, number]> = [
@@ -25,8 +23,7 @@ const PLACES: Array<[string, number, number]> = [
   ['the Aquatic Centre', 49.2684, -123.2486],
 ]
 
-function areaLabel(spot: HeatSpot) {
-  const people = spot.count === 1 ? '1 student' : `${spot.count} students`
+function nearestPlace(spot: HeatSpot) {
   let nearest: string | null = null
   let nearestMeters = 280
   for (const [name, lat, lng] of PLACES) {
@@ -38,14 +35,80 @@ function areaLabel(spot: HeatSpot) {
       nearestMeters = meters
     }
   }
+  return nearest
+}
+
+function areaLabel(spot: HeatSpot) {
+  const people = spot.count === 1 ? '1 student' : `${spot.count} students`
+  const nearest = nearestPlace(spot)
   return nearest ? `${people} near ${nearest}` : `${people} in this campus area`
 }
-export function LiveHeatmap() {
+
+/** The signed-in campus map: a light area wash, with a place and a count on each spot. */
+export function CampusActivityMap({ areas, mine }: { areas: HeatSpot[]; mine?: { lat: number; lng: number } | null }) {
   const ref = useRef<HTMLDivElement>(null)
   const mapRef = useRef<L.Map | null>(null)
-  const marker = useRef<CircleMarker | null>(null)
-  const heat = useRef<CompatibleHeatLayer | null>(null)
   const spots = useRef<L.LayerGroup | null>(null)
+  const marker = useRef<CircleMarker | null>(null)
+
+  useEffect(() => {
+    if (!ref.current || mapRef.current) return
+    const map = L.map(ref.current).setView(CAMPUS, 15)
+    mapRef.current = map
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map)
+    spots.current = L.layerGroup().addTo(map)
+    map.attributionControl?.setPrefix('')
+    requestAnimationFrame(() => map.invalidateSize())
+    return () => { map.remove(); mapRef.current = null; spots.current = null; marker.current = null }
+  }, [])
+
+  useEffect(() => {
+    const group = spots.current
+    const map = mapRef.current
+    if (!group || !map) return
+    group.clearLayers()
+    for (const spot of areas) {
+      const label = areaLabel(spot)
+      const place = nearestPlace(spot)
+      const circle = L.circle([spot.area.lat, spot.area.lng], {
+        radius: Math.min(150, 80 + spot.count * 6),
+        color: '#173B5E',
+        weight: 1.5,
+        opacity: 0.45,
+        fillColor: spot.count >= 8 ? '#e09a62' : '#8ecae6',
+        fillOpacity: Math.min(0.28, 0.12 + spot.count * 0.02),
+      })
+      circle.bindTooltip(place ? `${spot.count} · ${place}` : `${spot.count} students`, {
+        permanent: true,
+        direction: 'center',
+        className: 'heat-area-label',
+        opacity: 1,
+      })
+      circle.bindPopup(`${label}. This is a shared area, not an exact spot.`)
+      group.addLayer(circle)
+    }
+    if (areas.length) map.fitBounds(L.latLngBounds(areas.map((spot) => [spot.area.lat, spot.area.lng])).pad(0.45))
+  }, [areas])
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+    if (mine) {
+      if (marker.current) marker.current.setLatLng([mine.lat, mine.lng])
+      else {
+        marker.current = L.circleMarker([mine.lat, mine.lng], { radius: 8, color: '#002145', weight: 2, fillColor: '#f2a900', fillOpacity: 0.9 }).addTo(map)
+        marker.current.bindPopup('Your shared location')
+      }
+    } else {
+      marker.current?.remove()
+      marker.current = null
+    }
+  }, [mine])
+
+  return <div ref={ref} className="live-campus-map" role="img" aria-label="Campus map with anonymous area activity" />
+}
+
+export function LiveHeatmap() {
   const mounted = useRef(true)
   const busy = useRef(false)
   const [presence, setPresence] = useState<MyPresence>({ sharing: false })
@@ -57,68 +120,33 @@ export function LiveHeatmap() {
   const [areas, setAreas] = useState<HeatSpot[]>([])
   const [latest, setLatest] = useState(Date.now())
   const { getAccessTokenSilently } = useAuth0()
-  // Your Auth0 adapter owns tokens; request failures keep last-confirmed sharing state visible.
   useEffect(() => { setTokenGetter(getAccessTokenSilently) }, [getAccessTokenSilently])
 
-  const showMine = useCallback((profile: MyPresence) => {
-    if (!mounted.current || !mapRef.current) return
-    if (profile.sharing && typeof profile.lat === 'number' && typeof profile.lng === 'number') {
-      if (marker.current) {
-        marker.current.setLatLng([profile.lat, profile.lng])
-      } else {
-        const m = L.circleMarker([profile.lat, profile.lng], { radius: 9, color: '#002145', weight: 2, fillColor: '#f2a900', fillOpacity: 1 }).addTo(mapRef.current)
-        m.bindPopup('Your shared location')
-        marker.current = m
-      }
-    } else { marker.current?.remove(); marker.current = null }
-  }, [])
   const pull = useCallback(async () => {
     try {
       const [profile, map] = await Promise.all([fetchMyPresence(), fetchHeatmap()])
       if (!mounted.current) return
-      setPresence(profile); setCount(map.active_students); setAreas(map.areas)
-      heat.current?.setLatLngs(map.areas.map(({ area, count: weight }) => [area.lat, area.lng, weight]))
-      spots.current?.clearLayers()
-      for (const spot of map.areas) {
-        const label = areaLabel(spot)
-        const pin = L.circleMarker([spot.area.lat, spot.area.lng], {
-          radius: 8,
-          color: '#173B5E',
-          weight: 1.5,
-          fillColor: '#f4e7c8',
-          fillOpacity: 0.85,
-        })
-        pin.bindTooltip(label, { direction: 'top', opacity: 0.95 })
-        pin.bindPopup(`${label}. This is a shared area, not an exact spot.`)
-        spots.current?.addLayer(pin)
-      }
-      showMine(profile)
+      setPresence(profile)
+      setCount(map.active_students)
+      setAreas(map.areas)
       if (profile.sharing) setMessage('Location active. Refreshed from the server.')
       else setMessage('Campus activity without your name. Choose to share when you’re ready.')
       setRemaining(map.refresh_seconds || 30)
       setTtl(map.ttl_seconds || 180)
       setLatest(Date.now())
     } catch (error) { setMessage(browserMessage(error)) }
-  }, [showMine])
+  }, [])
+
   useEffect(() => {
     mounted.current = true
-    if (!ref.current) return
-    const map = L.map(ref.current).setView(CAMPUS, 15)
-    mapRef.current = map
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map)
-    heat.current = new HeatLayer([], { radius: 26, blur: 16, max: 8, maxZoom: 17, minOpacity: 0.12, gradient: { 0.25: '#8ecae6', 0.5: '#f6d58a', 0.75: '#e09a62', 1: '#c46b4a' } }) as unknown as CompatibleHeatLayer
-    map.addLayer(heat.current)
-    spots.current = L.layerGroup().addTo(map)
-    map.attributionControl?.setPrefix('')
-    requestAnimationFrame(() => map.invalidateSize())
     void pull()
     const timer = setInterval(() => { if (!busy.current) void pull() }, 30000)
-    return () => { mounted.current = false; clearInterval(timer); map.remove(); mapRef.current = null }
+    return () => { mounted.current = false; clearInterval(timer) }
   }, [pull])
   useEffect(() => {
-    const timer = setInterval(() => setRemaining(current => current > 0 ? current - 1 : 30), 1000)
+    const timer = setInterval(() => setRemaining((current) => current > 0 ? current - 1 : 30), 1000)
     return () => clearInterval(timer)
-  }, []);
+  }, [])
 
   const start = async () => {
     if (busy.current) return
@@ -128,7 +156,6 @@ export function LiveHeatmap() {
       const saved = await savePresence(point)
       if (!mounted.current) return
       setPresence(saved)
-      showMine(saved)
       setMessage('Location active. It stays on through refresh.')
       await pull()
     } catch (error) { if (mounted.current) setMessage(browserMessage(error)) }
@@ -141,21 +168,21 @@ export function LiveHeatmap() {
       const result = await deletePresence()
       if (!mounted.current) return
       setPresence(result)
-      marker.current?.remove()
       setMessage('Location sharing stopped.')
       await pull()
     } catch (error) { if (mounted.current) setMessage(browserMessage(error)) }
     finally { busy.current = false; setLoading(false) }
   }
   const seconds = remaining ? Math.max(0, remaining - Math.floor((Date.now() - latest) / 1000)) : 30
+  const mine = presence.sharing && typeof presence.lat === 'number' && typeof presence.lng === 'number' ? { lat: presence.lat, lng: presence.lng } : null
   return <>
     <p>You’re in control. Share a campus spot without your name for about {timeToExpire(ttl)}.</p>
-    <div ref={ref} className="live-campus-map" role="img" aria-label="Campus map with anonymous location activity" />
+    <CampusActivityMap areas={areas} mine={mine} />
     <div className="live-campus-actions">
       {presence.sharing ? <button type="button" className="button button--outline" disabled={loading} onClick={() => void stop()}>Stop sharing</button> : <button type="button" className="button button--primary" disabled={loading} onClick={() => void start()}>{loading ? 'Allow access…' : 'Share my location'}</button>}
       <span>Updates in {seconds}s</span>{count > 0 && <span>{count} active</span>}
     </div>
-    {areas.length > 0 && <ul className="live-campus-areas">{[...areas].sort((a, b) => b.count - a.count).map((spot) => <li key={`${spot.area.lat},${spot.area.lng}`}>{areaLabel(spot)}</li>)}</ul>
+    {areas.length > 0 && <ul className="live-campus-areas">{[...areas].sort((a, b) => b.count - a.count).map((spot) => <li key={`${spot.area.lat},${spot.area.lng}`}>{areaLabel(spot)}</li>)}</ul>}
     <p className="live-campus-status" role="status">{message}</p>
   </>
 }
