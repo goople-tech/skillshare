@@ -1,41 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
-import L from 'leaflet'
+import L, { type CircleMarker, type Layer } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { HeatLayer } from 'leaflet.heat'
 import { apiRequest, setTokenGetter } from '../../api'
 
-declare module 'leaflet' {
-  const leaflet: {
-    map: (el: HTMLElement) => LeafletMap
-    tileLayer: (url: string, options: object) => { addTo: (map: LeafletMap) => void }
-    circleMarker: (latlng: [number, number], options: object) => LeafletMarker
-  }
-  export default leaflet
-}
-
-interface LeafletMap {
-  setView: (center: [number, number], zoom: number) => LeafletMap
-  remove: () => void
-  flyTo: (center: [number, number], zoom: number) => void
-  invalidateSize: () => void
-  attributionControl?: { setPrefix: (prefix: string) => void }
-}
-
-interface LeafletMarker {
-  addTo: (map: LeafletMap) => LeafletMarker
-  bindPopup: (text: string) => void
-  setLatLng: (latlng: [number, number]) => void
-  remove: () => void
-}
-
-declare module 'leaflet.heat' {
-  export class HeatLayer {
-    constructor(latlngs: unknown[], options?: object)
-    setLatLngs(latlngs: unknown[]): unknown
-    addTo(map: LeafletMap): this
-  }
-}
+type LeafletMarker = CircleMarker
+// Upstream HeatLayer extends Leaflet Layer; its bundled declarations omit that base class.
+type CompatibleHeatLayer = InstanceType<typeof HeatLayer> & Layer
 
 const CAMPUS: [number, number] = [49.2628, -123.2505]
 
@@ -57,7 +29,7 @@ export function LiveHeatmap() {
   const [seconds, setSeconds] = useState(30)
   const [status, setStatus] = useState('Loading the live map…')
 
-  useEffect(() => { setTokenGetter(() => getAccessTokenSilently()) }, [getAccessTokenSilently])
+  useEffect(() => { setTokenGetter(async () => (await getAccessTokenSilently()) ?? null) }, [getAccessTokenSilently])
 
   useEffect(() => {
     if (!mapEl.current) return
@@ -72,7 +44,8 @@ export function LiveHeatmap() {
       maxZoom: 15,
       minOpacity: 0.45,
       gradient: { 0.3: '#7eb6ff', 0.55: '#f2a900', 0.8: '#e85d04', 1: '#9b2226' },
-    }).addTo(map)
+    }) as unknown as CompatibleHeatLayer
+    map.addLayer(heat)
     map.attributionControl?.setPrefix('')
 
     let marker: LeafletMarker | null = null
@@ -82,14 +55,15 @@ export function LiveHeatmap() {
     const placeMarker = (lat: number, lng: number) => {
       const first = !marker
       if (!marker) {
-        marker = L.circleMarker([lat, lng], {
+        const createdMarker = L.circleMarker([lat, lng], {
           radius: 9,
           color: '#002145',
           weight: 2,
           fillColor: '#f2a900',
           fillOpacity: 1,
         }).addTo(map)
-        marker.bindPopup('You are live')
+        createdMarker.bindPopup('You are live')
+        marker = createdMarker
       } else {
         marker.setLatLng([lat, lng])
       }

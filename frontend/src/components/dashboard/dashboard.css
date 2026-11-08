@@ -439,3 +439,46 @@
   .match-actions { justify-content: flex-start; }
   .app-navigation-tools { gap: 4px; }
 }
+
+/* Shared public-page/app navigation: keep the same airy ivory identity. */
+.workspace-header { background: #F8F5EEED; border-bottom: 1px solid #D8DFDF90; }
+.workspace-header-inner { min-height: 86px; gap: 30px; padding-inline: max(40px, calc((100vw - 1180px) / 2)); }
+.workspace-header .wordmark { font-size: 27px; }
+.workspace-nav { padding: 0; margin-left: auto; margin-right: 0; gap: clamp(12px, 1.7vw, 27px); background: transparent; border-radius: 0; }
+.workspace-nav-item { position: relative; min-height: 44px; padding: 10px 0; border-radius: 0; color: #40525D; font-size: 12px; font-weight: 500; }
+.workspace-nav-item::after { position: absolute; content: ''; height: 1px; bottom: 2px; left: 0; right: 100%; background: var(--orange); transition: right .2s; }
+.workspace-nav-item:hover::after { right: 0; }
+.workspace-nav-item:hover { background: transparent; }
+.workspace-nav-item--active { color: var(--blue); background: transparent; }
+.workspace-nav-item--active::after { right: 0; }
+.search-trigger { background: transparent; border-color: transparent; min-width: 190px; font-size: 12px; }
+.search-trigger:hover { background: var(--cream); border-color: var(--border); }
+.dashboard-signin { border-radius: 6px; font-size: 12px; padding: 12px 17px; }
+.profile-nav-avatar { width: 35px; height: 35px; }
+.workspace-header-inner > .workspace-icon-btn { margin-left: 0; }
+.workspace-mobile-nav { padding: 16px max(25px, calc((100vw - 1180px) / 2)) 24px; background: var(--ivory); }
+.workspace-mobile-item { padding: 11px 3px; font-size: 14px; }
+@media (max-width: 1260px) {
+  .workspace-header-inner { padding-inline: 24px; gap: 20px; }
+  .workspace-nav { gap: 16px; }
+  .workspace-nav-item { font-size: 11px; }
+}
+@media (max-width: 1040px) {
+  .search-trigger { min-width: 180px; width: 36px; }
+  .search-trigger span, .search-trigger kbd { display: none; }
+  .notification-btn { margin-left: 0; }
+}
+@media (max-width: 870px) {
+  .workspace-header-inner { padding-inline: 23px; }
+  .workspace-nav { margin-left: 0; }
+  .workspace-nav-item { padding-inline: 0; }
+  .search-trigger { margin-left: auto; }
+}
+@media (max-width: 680px) {
+  .workspace-header-inner { min-height: 76px; padding-inline: 21px; gap: 9px; }
+  .workspace-header .wordmark { font-size: 25px; }
+  .search-trigger, .search-trigger span, .search-trigger kbd { display: none; }
+  .notification-btn { margin-left: auto; }
+  .workspace-mobile-nav { padding-inline: 22px; }
+  .dashboard-signin { padding: 10px 12px; font-size: 11px; }
+}
