@@ -1193,3 +1193,64 @@ h1 em, h2 em, h3 em { color: var(--orange); font-weight: 400; }
   .footer-links h3 { font-size: 13px; }
   .footer-links a { font-size: 12px; }
 }
+
+/* Pathway cards no longer end with an "Explore" link bar */
+.timeline-card.pathway-card { padding-bottom: 32px; }
+.timeline-card.pathway-card .mini-interface { border-radius: 8px; }
+
+/* Cards pop in from their side as they enter the screen and fade out as they leave the top */
+@keyframes timeline-pop-left {
+  0% { opacity: 0; transform: translateX(-80px) scale(.94); }
+  22% { opacity: 1; transform: none; }
+  74% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-28px) scale(.97); }
+}
+@keyframes timeline-pop-right {
+  0% { opacity: 0; transform: translateX(80px) scale(.94); }
+  22% { opacity: 1; transform: none; }
+  74% { opacity: 1; transform: none; }
+  100% { opacity: 0; transform: translateY(-28px) scale(.97); }
+}
+@supports (animation-timeline: view()) {
+  .timeline-item.reveal { animation-duration: 1ms; animation-fill-mode: both; animation-timing-function: linear; animation-timeline: view(); animation-range: cover 0% cover 100%; }
+  .timeline-item--left.reveal { animation-name: timeline-pop-left; }
+  .timeline-item--right.reveal { animation-name: timeline-pop-right; }
+}
+@media (prefers-reduced-motion: reduce) { .timeline-item.reveal { animation: none; opacity: 1; transform: none; } }
+@supports (animation-timeline: view()) {
+  .timeline-item.reveal { animation-duration: auto; }
+}
+
+/* `overflow: hidden` made .site a (non-scrolling) scroll container, which breaks scroll-linked animations.
+   `clip` hides overflow the same way without becoming a scroller. */
+.site, .site:has(.hero-sky) { overflow: clip; }
+
+/* Timeline cards: pop in from their side, fade out when they leave the screen (toggled by an IntersectionObserver) */
+.timeline--animate .timeline-item.reveal { animation: none; opacity: 0; transition: opacity .55s ease, transform .6s cubic-bezier(.2, .8, .2, 1); will-change: opacity, transform; }
+.timeline--animate .timeline-item--left.reveal { transform: translateX(-80px) scale(.94); }
+.timeline--animate .timeline-item--right.reveal { transform: translateX(80px) scale(.94); }
+.timeline--animate .timeline-item.reveal.is-visible { opacity: 1; transform: none; }
+@media (max-width: 760px) {
+  .timeline--animate .timeline-item--left.reveal, .timeline--animate .timeline-item--right.reveal { transform: translateX(-40px) scale(.96); }
+  .timeline--animate .timeline-item.reveal.is-visible { transform: none; }
+}
+
+/* More space between timeline cards */
+.timeline { row-gap: clamp(56px, 5.5vw, 84px); }
+@media (max-width: 760px) { .timeline { row-gap: 40px; } }
+
+/* Softer, more natural clouds: feathered edges, tinted haze instead of a hard outline, gentle drift */
+.hero-visual .hero-campus-seal::before,
+.hero-visual .hero-match-card::before,
+.hero-visual .hero-swap-card::before { filter: drop-shadow(0 14px 22px #173B5E1A); }
+@keyframes cloud-float { 0%, 100% { translate: 0 0; } 50% { translate: 0 -9px; } }
+.hero-visual .hero-campus-seal { animation: cloud-float 7s ease-in-out infinite; }
+.hero-visual .hero-swap-card { animation: cloud-float 8.5s ease-in-out -2s infinite; }
+.hero-visual .hero-match-card { animation: cloud-float 9.5s ease-in-out -4s infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .hero-visual .hero-campus-seal, .hero-visual .hero-swap-card, .hero-visual .hero-match-card { animation: none; }
+}
+/* Crisper cloud shadow (was too diffuse) */
+.hero-visual .hero-campus-seal::before,
+.hero-visual .hero-match-card::before,
+.hero-visual .hero-swap-card::before { filter: drop-shadow(0 8px 12px #173B5E1F); }

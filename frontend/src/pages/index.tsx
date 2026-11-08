@@ -2,7 +2,7 @@
  * Auth0 integration / verified identity belongs to the app/backend owner.
  * The shared transition boundary is documented in AUTH_TRANSITION.md.
  */
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowDown, ArrowRight, ArrowUpRight, ChevronRight, GraduationCap, Heart, Menu, MoveHorizontal, ShieldCheck, Users, X } from 'lucide-react'
 import { Seo } from '../components/Seo'
 import { seo } from '../seo'
@@ -37,6 +37,29 @@ function StepGraphic({ kind }: { kind: string }) {
 export default function Landing() {
   const [menuOpen, setMenuOpen] = useState(false)
   const signedIn = useSignedIn()
+  // Timeline cards pop in from their side when they enter the screen and fade out when they leave it.
+  useEffect(() => {
+    const timeline = document.querySelector('.timeline')
+    if (!timeline || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const items = Array.from(timeline.querySelectorAll<HTMLElement>('.timeline-item'))
+    const update = () => {
+      const viewport = window.innerHeight
+      for (const item of items) {
+        const { top, bottom, height } = item.getBoundingClientRect()
+        const overlap = Math.min(bottom, viewport * 0.94) - Math.max(top, 0)
+        item.classList.toggle('is-visible', overlap >= Math.min(height * 0.12, 140))
+      }
+    }
+    timeline.classList.add('timeline--animate')
+    update()
+    window.addEventListener('scroll', update, { passive: true })
+    window.addEventListener('resize', update)
+    return () => {
+      window.removeEventListener('scroll', update)
+      window.removeEventListener('resize', update)
+      timeline.classList.remove('timeline--animate')
+    }
+  }, [])
   // Signed in: go straight to the dashboard. Otherwise real Auth0 login (see src/pages/auth.tsx).
   const openLogin = () => { window.location.assign(signedIn ? '/home' : '/auth') }
   const loginLabel = signedIn ? 'Enter Dashboard' : 'Log In / Sign Up'
@@ -101,7 +124,6 @@ export default function Landing() {
                   <p>Discover study partners and potential friends through shared interests, courses, and energy—online or in person.</p>
                   <ul className="tag-list" aria-label="Buddies features">{buddyTags.map((tag) => <li key={tag}>{tag}</li>)}</ul>
                   <BuddiesPreview />
-                  <a className="pathway-link" href="#how-it-works">Explore Buddies <span><ArrowUpRight size={19} /></span></a>
                 </article>
                 </li>
                 <li className="timeline-item timeline-item--left reveal">
@@ -112,7 +134,6 @@ export default function Landing() {
                   <p>Exchange skills, find peer tutoring, or meet collaborators for your next project.</p>
                   <ul className="tag-list" aria-label="SkillShare features">{skillTags.map((tag) => <li key={tag}>{tag}</li>)}</ul>
                   <SkillPreview />
-                  <a className="pathway-link" href="#skillshare-highlight">Explore SkillShare <span><ArrowUpRight size={19} /></span></a>
                 </article>
                 </li>
                 <li className="timeline-item timeline-item--right reveal" id="campus-activity">
