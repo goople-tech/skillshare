@@ -47,6 +47,18 @@ def test_photo_is_optional_and_saved():
     assert client.put("/me", json={"photo": "x" * 400_001}).status_code == 422
 
 
+def test_sticker_is_optional_and_saved():
+    as_user("sticker@student.ubc.ca")
+    created = client.post("/users", json={"name": "Sticker"}).json()
+    assert created["sticker"] == ""
+    saved = client.put("/me", json={"sticker": "bird"}).json()
+    assert saved["sticker"] == "bird" and saved["name"] == "Sticker"
+    assert client.put("/me", json={"name": "Cara"}).json()["sticker"] == "bird"
+    assert client.put("/me", json={"sticker": "not-a-sticker"}).status_code == 422
+    cleared = client.put("/me", json={"sticker": ""}).json()
+    assert cleared["sticker"] == ""
+
+
 def test_partial_update_changes_only_sent_fields():
     as_user("alice@student.ubc.ca")
     r = client.put("/me", json={"energy": "low", "courses": "CPSC 213"})
@@ -94,5 +106,5 @@ def test_old_database_gets_new_columns():
     finally:
         main.engine = original
     with old.connect() as c:
-        row = c.execute(sa.text("SELECT interests, mode, energy, photo FROM users")).one()
-    assert tuple(row) == ("", "either", "medium", "")
+        row = c.execute(sa.text("SELECT interests, mode, energy, photo, sticker FROM users")).one()
+    assert tuple(row) == ("", "either", "medium", "", "")

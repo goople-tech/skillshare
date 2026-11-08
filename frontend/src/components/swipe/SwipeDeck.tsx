@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent as ReactPoi
 import { ArrowLeft, ArrowRight, Check, Heart, MessageCircle, RotateCcw, Sparkles, X } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import type { SwipeDataSource } from './swipeSource'
+import { stickerSrc } from '../../profile/stickers.js'
 import { DECK_LABEL, type SwipeCardView, type SwipeDirection, type SwipeKind } from './types'
 
 const FLING_PX = 110
@@ -207,6 +208,7 @@ export function SwipeDeck({ kind, source, onClose, onUsePreview }: {
           >
             <div className="swipe-card-photo">
               {card.photo ? <img src={card.photo} alt="" draggable={false} /> : <span className="swipe-card-initials" aria-hidden="true">{card.initials}</span>}
+              {stickerSrc(card.sticker) && <img className="swipe-card-sticker" src={stickerSrc(card.sticker)} alt="" draggable={false} />}
               {isTop && <>
                 <span className="swipe-stamp swipe-stamp--pass" style={{ opacity: stampOpacity('pass') }}>Pass</span>
                 <span className="swipe-stamp swipe-stamp--like" style={{ opacity: stampOpacity('like') }}>Like</span>

@@ -26,6 +26,7 @@ class User(Base):
     mode: Mapped[str] = mapped_column(String, default="either")     # in_person | online | either
     energy: Mapped[str] = mapped_column(String, default="medium")   # low | medium | high
     photo: Mapped[str] = mapped_column(Text, default="")  # small data URL, optional
+    sticker: Mapped[str] = mapped_column(String, default="")  # public profile sticker id, optional
     xp: Mapped[int] = mapped_column(Integer, default=0)
 
     listings: Mapped[list["Listing"]] = relationship(back_populates="owner")

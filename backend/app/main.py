@@ -18,7 +18,7 @@ Base.metadata.create_all(bind=engine)  # creates tables on startup
 
 # create_all() never adds columns to an existing table, so add the profile columns
 # to databases created before they existed (no need to delete ubchub.db).
-_PROFILE_COLUMNS = {"interests": "''", "mode": "'either'", "energy": "'medium'", "photo": "''"}
+_PROFILE_COLUMNS = {"interests": "''", "mode": "'either'", "energy": "'medium'", "photo": "''", "sticker": "''"}
 
 
 def _add_missing_profile_columns() -> None:
