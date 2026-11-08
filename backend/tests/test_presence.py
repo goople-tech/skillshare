@@ -19,7 +19,8 @@ def test_presence_persists_until_explicit_delete_and_rejects_out_of_range():
     r = client.post('/presence', json={'lat': 49.2628, 'lng': -123.2505})
     assert r.status_code == 200
     assert client.get('/presence/me').json()['sharing'] is True
-    assert len(client.get('/presence/heatmap').json()['points']) == 1
+    assert len(client.get('/presence/heatmap').json()['areas']) == 1
+    assert client.get('/presence/heatmap').json()['active_students'] == 1
     assert client.post('/presence', json={'lat': 91, 'lng': 0}).status_code == 400
     assert client.delete('/presence').json()['sharing'] is False
     assert client.get('/presence/me').json()['sharing'] is False

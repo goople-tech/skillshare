@@ -15,7 +15,7 @@ const expectCentered = async (page: import('@playwright/test').Page) => {
 }
 
 test('the auth route supplies public runtime configuration before entering the dashboard', async ({ page }) => {
-  await page.route('**/presence/**', (route) => route.fulfill({ json: route.request().url().endsWith('/presence/me') ? { sharing: false } : { points: [], refresh_seconds: 30, ttl_seconds: 180 } }))
+  await page.route('**/presence/**', (route) => route.fulfill({ json: route.request().url().endsWith('/presence/me') ? { sharing: false } : { areas: [], active_students: 0, refresh_seconds: 30, ttl_seconds: 180 } }))
   await page.goto('/auth')
   await page.waitForURL('/home')
   await expect(page.getByRole('heading', { name: /Requests for you/ })).toBeVisible()
@@ -67,7 +67,7 @@ test('390px layout, centered notifications/search, and readable controls work', 
 })
 
 test('profile, offers, connections and exchanges all use the shared data source', async ({ page }) => {
-  await page.route('**/presence/**', (route) => route.fulfill({ json: route.request().url().endsWith('/presence/me') ? { sharing: false } : { points: [], refresh_seconds: 30, ttl_seconds: 3600 } }))
+  await page.route('**/presence/**', (route) => route.fulfill({ json: route.request().url().endsWith('/presence/me') ? { sharing: false } : { areas: [], active_students: 0, refresh_seconds: 30, ttl_seconds: 3600 } }))
   const errors = captureConsoleErrors(page)
   await openPreview(page)
   const people = page.getByRole('region', { name: 'Connections' })

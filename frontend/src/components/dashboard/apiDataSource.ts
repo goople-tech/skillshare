@@ -1,4 +1,4 @@
-import type { ApiAccount, ApiSkillMatch } from './apiTypes'
+import type { ApiAccount, ApiMatchProfile, ApiSkillMatch } from './apiTypes'
 import type { WorkspaceDataSource } from './dataSource'
 import type { Person, ProfileDetails, SkillMatch, WorkspaceSnapshot } from './types'
 import { emptySnapshot } from './types'
@@ -28,8 +28,8 @@ export const profileToApi = (profile: ProfileDetails) => ({
   skills_teach: profile.teach.join(','),
   skills_learn: profile.learn.join(','),
 })
-export const personFromApi = (account: ApiAccount): Person => {
-  const profile = profileFromApi(account)
+export const personFromApi = (account: ApiMatchProfile): Person => {
+  const profile = profileFromApi({ ...account, email: '' })
   return { id: String(account.id), name: account.name, initials: initials(account.name), program: account.bio, year: '', context: account.bio, courses: profile.courses, interests: profile.interests, offers: profile.teach, learns: profile.learn, preference: profile.preference, invited: false }
 }
 export const skillMatchesFromApi = (matches: ApiSkillMatch[]): SkillMatch[] => matches.map((match) => ({

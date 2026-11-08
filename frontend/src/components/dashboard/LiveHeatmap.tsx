@@ -43,8 +43,8 @@ export function LiveHeatmap() {
     try {
       const [profile, map] = await Promise.all([fetchMyPresence(), fetchHeatmap()])
       if (!mounted.current) return
-      setPresence(profile); setCount(map.points.length)
-      heat.current?.setLatLngs(map.points.map((point) => [point.lat, point.lng, 1]))
+      setPresence(profile); setCount(map.active_students)
+      heat.current?.setLatLngs(map.areas.map(({ area, count }) => [area.lat, area.lng, count]))
       showMine(profile)
       if (profile.sharing) setMessage('Location active. Refreshed from the server.')
       else setMessage('Campus activity without your name. Choose to share when you’re ready.')

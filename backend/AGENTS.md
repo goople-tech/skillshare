@@ -24,3 +24,12 @@ Dependencies are in `requirements.txt`; use an isolated virtual environment. Cop
 - `POST /users` accepts them on creation; `PUT /me` edits the caller's own profile (partial update, only sent fields change). Email comes from the verified token and XP is server-managed, so neither is editable.
 - `main._add_missing_profile_columns()` adds these columns to databases created before they existed, because `create_all()` never alters tables. Replace with real migrations (e.g. Alembic) before production.
 - Tests: `pip install pytest`, then `python -m pytest tests` from `backend/`. They override `auth.current_email`, so no Auth0 tenant or network is needed.
+
+## Privacy-preserving heatmaps
+
+- Heatmaps return coarse cells (~89m north/south by ~110m east/west) as `areas` plus `active_students`. Only `/presence/me` returns the current user's exact stored coordinates. Never return others' raw rows, even without names: coordinates are personal data. Keep SkillShare matches on `StudentMatchOut` (no email, stored photo, or XP).
+
+## Searching and listings
+
+- `/listings` supports AND-combined `search`, `category`, `skill`, `course`, `interest`, `meeting`, `available`, and `limit` (1..100, default 50). Text filtering runs SQL-side using bounded, escaped case-insensitive substring matching. Meeting choices map to location text during the free-text MVP; `either` includes online/in-person/hybrid. Normalize this field before calling the filters semantic availability or recommendation matching. `available` counts `listing_members`; capacity must be positive.
+- Listing tests are required for every filter/ownership change. Add concurrency-safe join checks before claiming capacity enforcement under simultaneous writes.

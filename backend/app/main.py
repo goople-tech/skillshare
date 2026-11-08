@@ -3,12 +3,13 @@ from datetime import datetime, timedelta
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import inspect, text
+from sqlalchemy import func, inspect, or_, text
 from sqlalchemy.orm import Session
 
 from . import models, schemas, gemini
 from .auth import current_email, current_user
 from .database import Base, engine, get_db
+from .privacy import aggregate_heat_points
 
 Base.metadata.create_all(bind=engine)  # creates tables on startup
 
@@ -80,12 +81,54 @@ def update_profile(data: schemas.UserUpdate, user: models.User = Depends(current
 
 
 # ---------- Listings ----------
+def _text_match(value: str):
+    """Bound user-supplied LIKE metacharacters before a case-insensitive match."""
+    escaped = value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
+
+
+def _contains(column, value: str):
+    return func.lower(column).like(_text_match(value.lower()), escape="\\")
+
+
 @app.get("/listings", response_model=list[schemas.ListingOut])
-def list_listings(category: str | None = None, _: models.User = Depends(current_user), db: Session = Depends(get_db)):
+def list_listings(
+    search: str | None = None,
+    category: schemas.Category | None = None,
+    skill: str | None = None,
+    course: str | None = None,
+    interest: str | None = None,
+    meeting: schemas.Mode | None = None,
+    available: bool = False,
+    limit: int = 50,
+    _: models.User = Depends(current_user),
+    db: Session = Depends(get_db),
+):
+    """Search/filter in SQL; fuzzy terms intentionally span the current text-tag prototype."""
+    if limit < 1 or limit > 100:
+        raise HTTPException(422, "limit must be between 1 and 100")
+    if search and len(search) > 200:
+        raise HTTPException(422, "search must be 200 characters or less")
     q = db.query(models.Listing)
     if category:
         q = q.filter_by(category=category)
-    return q.order_by(models.Listing.created_at.desc()).all()
+    if search:
+        q = q.filter(or_(_contains(models.Listing.title, search), _contains(models.Listing.description, search), _contains(models.Listing.tag, search), _contains(models.Listing.location, search)))
+    if skill:
+        q = q.filter(_contains(models.Listing.tag, skill))
+    if course:
+        q = q.filter(or_(_contains(models.Listing.tag, course), _contains(models.Listing.description, course)))
+    if interest:
+        q = q.filter(or_(_contains(models.Listing.description, interest), _contains(models.Listing.title, interest)))
+    if meeting:
+        # Prototype listings have free-text meeting details, not a normalized meeting column.
+        meeting_terms = {"in_person": ["in person", "in-person"], "online": ["online"], "either": ["either", "hybrid", "online", "in person", "in-person"]}[meeting]
+        # Explicit lowercase/escape comparison behaves consistently in SQLite and PostgreSQL.
+        q = q.filter(or_(*(func.lower(models.Listing.location).like(_text_match(term).lower(), escape="\\") for term in meeting_terms)))
+    if available:
+        membership_count = db.query(models.listing_members.c.listing_id, func.count(models.listing_members.c.user_id).label("members_count")).group_by(models.listing_members.c.listing_id).subquery()
+        q = q.outerjoin(membership_count, models.Listing.id == membership_count.c.listing_id).filter(func.coalesce(membership_count.c.members_count, 0) < models.Listing.capacity)
+    return q.order_by(models.Listing.created_at.desc()).limit(limit).all()
 
 
 @app.post("/listings", response_model=schemas.ListingOut)
@@ -137,7 +180,7 @@ def skills(s: str) -> set[str]:
             result.add(x.strip().lower())
     return result
     
-@app.get("/skillshare/matches")
+@app.get("/skillshare/matches", response_model=list[schemas.SkillMatchOut])
 def skill_matches(user_p: models.User = Depends(current_user), db: Session = Depends(get_db)):
     """People who can teach the logged-in user something they want to learn (mutual swaps first)."""
     user_id = user_p.id
@@ -150,7 +193,7 @@ def skill_matches(user_p: models.User = Depends(current_user), db: Session = Dep
         i_teach_them = my_teach & skills(other.skills_learn)
         if they_teach_me:
             results.append({
-                "user": schemas.UserOut.model_validate(other),
+                "user": schemas.StudentMatchOut.model_validate(other),
                 "they_teach_me": sorted(they_teach_me),
                 "i_teach_them": sorted(i_teach_them),
                 "mutual": bool(i_teach_them),   # the ideal skillshare.
@@ -180,12 +223,13 @@ def _check_coord(lat: float, lng: float) -> None:
 
 @app.get("/presence/heatmap", response_model=schemas.HeatmapOut)
 def presence_heatmap(_: models.User = Depends(current_user), db: Session = Depends(get_db)):
-    """Coordinates only. Names are not included, and points older than the timer are left out."""
+    """Broad areas and counts only; individual coordinates stay with their owner."""
     _prune_presence(db)
     db.commit()
-    rows = db.query(models.Presence).all()
+    rows = db.query(models.Presence.lat, models.Presence.lng).all()
     return {
-        "points": [{"lat": row.lat, "lng": row.lng} for row in rows],
+        "areas": aggregate_heat_points(rows),
+        "active_students": len(rows),
         "refresh_seconds": PRESENCE_REFRESH_SECONDS,
         "ttl_seconds": PRESENCE_TTL_SECONDS,
     }

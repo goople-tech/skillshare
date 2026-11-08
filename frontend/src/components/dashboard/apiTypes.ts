@@ -12,4 +12,5 @@ export type ApiAccount = {
   mode: 'in_person' | 'online' | 'either'
   energy: 'low' | 'medium' | 'high'
 }
-export type ApiSkillMatch = { user: ApiAccount; they_teach_me: string[]; i_teach_them: string[]; mutual: boolean }
+export type ApiMatchProfile = Omit<ApiAccount, 'email'>
+export type ApiSkillMatch = { user: ApiMatchProfile; they_teach_me: string[]; i_teach_them: string[]; mutual: boolean }

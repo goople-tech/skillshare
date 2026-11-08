@@ -48,6 +48,27 @@ class UserOut(BaseModel):
     xp: int
 
 
+class StudentMatchOut(BaseModel):
+    """Only public recommendation fields; never reveal another student's account data."""
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    bio: str
+    courses: str
+    skills_teach: str
+    skills_learn: str
+    interests: str
+    mode: Mode
+    energy: Energy
+
+
+class SkillMatchOut(BaseModel):
+    user: StudentMatchOut
+    they_teach_me: list[str]
+    i_teach_them: list[str]
+    mutual: bool
+
+
 class ListingCreate(BaseModel):
     category: Category
     title: str
@@ -55,7 +76,7 @@ class ListingCreate(BaseModel):
     tag: str = ""
     location: str = ""
     time: str = ""
-    capacity: int = 4
+    capacity: int = Field(default=4, ge=1, le=100)
 
 
 class ListingOut(BaseModel):
@@ -73,7 +94,7 @@ class ListingOut(BaseModel):
 
 
 class DraftRequest(BaseModel):
-    text: str  # e.g. a pasted Reddit post
+    text: str = Field(max_length=10_000)  # e.g. a pasted Reddit post
 
 
 class PresenceUpdate(BaseModel):
@@ -86,8 +107,14 @@ class HeatPoint(BaseModel):
     lng: float
 
 
+class HeatArea(BaseModel):
+    area: HeatPoint
+    count: int
+
+
 class HeatmapOut(BaseModel):
-    points: list[HeatPoint]
+    areas: list[HeatArea]
+    active_students: int
     refresh_seconds: int
     ttl_seconds: int
 

@@ -6,7 +6,7 @@ test('location sharing handles failed POST and restores server choice through re
   let failedOnce = false
   const calls: string[] = []
   await page.route('**/presence/me', async (route) => { calls.push(`GET:${route.request().method()}`); await route.fulfill({ json: sharing }) })
-  await page.route('**/presence/heatmap', async (route) => await route.fulfill({ json: { points: sharing.sharing ? [{ lat: sharing.lat, lng: sharing.lng }] : [], refresh_seconds: 30, ttl_seconds: 180 } }))
+  await page.route('**/presence/heatmap', async (route) => await route.fulfill({ json: { areas: sharing.sharing ? [{ area: { lat: sharing.lat, lng: sharing.lng }, count: 1 }] : [], active_students: sharing.sharing ? 1 : 0, refresh_seconds: 30, ttl_seconds: 180 } }))
   await page.route('**/presence', async (route) => {
     const method = route.request().method()
     calls.push(method)

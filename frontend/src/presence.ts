@@ -1,7 +1,7 @@
 import { apiRequest } from './api'
 
 export type HeatPoint = { lat: number; lng: number }
-export type HeatResponse = { points: HeatPoint[]; refresh_seconds: number; ttl_seconds: number }
+export type HeatResponse = { areas: Array<{ area: HeatPoint; count: number }>; active_students: number; refresh_seconds: number; ttl_seconds: number }
 export type MyPresence = { sharing: boolean; lat?: number | null; lng?: number | null }
 
 export const fetchHeatmap = () => apiRequest<HeatResponse>('/api/campus/presence/heatmap')
