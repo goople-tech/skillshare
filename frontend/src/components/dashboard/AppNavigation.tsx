@@ -8,7 +8,7 @@ import type { Activity } from './types'
 
 const links = [
   { id: 'dashboard-top', label: 'Dashboard', icon: Home },
-  { id: 'requests', label: 'Buddies', icon: Users },
+  { id: 'buddies', label: 'Buddies', icon: Users },
   { id: 'skills-matches', label: 'SkillShare', icon: GraduationCap },
   { id: 'projects', label: 'Projects', icon: FolderKanban },
   { id: 'campus-activity', label: 'Campus Activity', icon: MapPin },
@@ -37,6 +37,9 @@ export function AppNavigation({ activities, onFind, onEditProfile }: { activitie
     if (id === 'skills-matches' && location.pathname === '/skillshare') { document.getElementById('skill-category')?.focus(); return }
     if (id === 'skills-matches') return navigate('/skillshare')
     if (location.pathname !== '/home') return navigate(`/home#${id}`)
+    // Buddies opens the dashboard's Speed Matching section with the Buddies phone in front (SwipeLauncher reads #buddies).
+    if (id === 'buddies' && location.hash === '#buddies') { document.getElementById('meet')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' }); return }
+    if (id === 'buddies') return navigate('/home#buddies', { preventScrollReset: true })
     const section = document.getElementById(id)
     if (!section) return
     section.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
