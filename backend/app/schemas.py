@@ -4,6 +4,8 @@ from pydantic import BaseModel, ConfigDict, Field
 Category = Literal["study", "skill", "ride"]
 Mode = Literal["in_person", "online", "either"]
 Energy = Literal["low", "medium", "high"]
+SwipeKind = Literal["buddy", "skill"]
+SwipeDirection = Literal["like", "pass"]
 
 
 class UserCreate(BaseModel):
@@ -125,3 +127,23 @@ class PresenceMine(BaseModel):
     lng: float | None = None
 
 
+class SwipeCard(BaseModel):
+    """A deck card. `reasons` are plain-language overlaps; no numeric score is exposed."""
+    profile: StudentMatchOut
+    reasons: list[str]
+
+
+class SwipeIn(BaseModel):
+    target_id: int
+    kind: SwipeKind
+    direction: SwipeDirection
+
+
+class SwipeResult(BaseModel):
+    matched: bool
+    profile: StudentMatchOut | None = None   # set only when this swipe completed a mutual like
+
+
+class SwipeMatch(BaseModel):
+    kind: SwipeKind
+    profile: StudentMatchOut

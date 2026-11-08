@@ -1,0 +1,9 @@
+# Swipe decks (Buddies / SkillShare)
+
+- `SwipeLauncher` is mounted in `DashboardView`: crossed phone cards (`CrossedCards`), the full-screen deck (`SwipeDeck`, native `<dialog>`), and a strip of mutual matches.
+- Interaction: ← once lifts the Buddies card, ← again opens that deck; → does the same for SkillShare. Keys only act while the section is ≥45% visible and no dialog is open. In a deck, the first ←/→ tilts the top card (PASS/LIKE preview), the same key again commits, the opposite key switches, ↓/Backspace or Esc cancels (Esc again closes). Cards can also be dragged (110px or a fast flick) or swiped with the round buttons.
+- Data goes through `swipeSource.ts` only (`ApiSwipeSource` → FastAPI `/swipe/{buddy|skill}/deck`, `POST /swipe`, `/swipe/matches`). `cardFromApi` is the single mapping point. Components never fetch.
+- Ordering is compatibility only (shared courses/interests/skills, meeting mode, pace). No popularity/Elo rating and no numeric score is sent or shown; cards show plain-language reasons from the server.
+- Swipes are optimistic with rollback: the card leaves immediately, and returns on a failed request with a visible message. Matches are shown only after the server reports `matched: true`.
+- `PreviewSwipeSource` is a labelled, in-memory sample deck offered only when the service can't be reached. It never reports matches and saves nothing.
+- Respect `prefers-reduced-motion`; keep 390px with no horizontal overflow. Unit tests: `swipeSource.test.ts`.

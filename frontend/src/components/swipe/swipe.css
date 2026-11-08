@@ -1,0 +1,229 @@
+/* Buddies / SkillShare swipe decks. Flat UBC Ver. palette, no gradients. */
+
+/* ---------- Crossed phone cards (dashboard section) ---------- */
+.crossed-cards {
+  --spread: 0.5;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  align-items: center;
+  gap: 24px;
+  margin: 0 0 22px;
+  padding: 28px 32px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--cream);
+  outline: none;
+  overflow: hidden;
+}
+.crossed-cards:focus-visible { box-shadow: 0 0 0 3px var(--blue-surface-strong); }
+.crossed-cards-copy h2 { font-size: 28px; margin: 0 0 10px; }
+.crossed-cards-copy p { margin: 0 0 10px; color: var(--ink-muted); max-width: 42ch; }
+.crossed-cards-hint { font-weight: 600; color: var(--blue) !important; font-size: 15px; }
+
+.crossed-cards-stage { position: relative; height: 420px; }
+.phone-card {
+  --x: 0px;
+  --r: 0deg;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 196px;
+  height: 372px;
+  padding: 26px 22px;
+  border: 6px solid var(--ink);
+  border-radius: 40px;
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  opacity: 0;
+  scale: 0.8;
+  transform: translate(-50%, -50%) translateX(var(--x)) rotate(var(--r));
+  transition: transform 520ms cubic-bezier(.34, 1.45, .64, 1), scale 420ms cubic-bezier(.34, 1.45, .64, 1), opacity 300ms, box-shadow 300ms, filter 300ms;
+  box-shadow: 0 18px 40px rgba(23, 59, 94, .18);
+}
+.phone-card:focus-visible { outline: 3px solid var(--orange); outline-offset: 4px; }
+.phone-card:disabled { cursor: default; }
+.phone-card-notch { position: absolute; top: 9px; left: 50%; width: 64px; height: 16px; border-radius: 10px; background: var(--ink); transform: translateX(-50%); }
+.phone-card strong { font: 600 28px/1.1 'Lora', Georgia, serif; letter-spacing: -.03em; }
+.phone-card span:not(.phone-card-notch) { font-size: 14px; line-height: 1.45; }
+.phone-card kbd { display: inline-flex; gap: 2px; margin-top: 8px; padding: 4px 8px; border-radius: 999px; font: 600 12px 'DM Sans', sans-serif; }
+.phone-card--left { color: var(--cream); background: var(--blue); }
+.phone-card--left kbd { background: rgba(255, 253, 248, .16); color: var(--cream); }
+.phone-card--right { color: var(--ink); background: var(--sand); }
+.phone-card--right kbd { background: rgba(36, 51, 61, .1); color: var(--ink); }
+
+/* Revealed: cross into an X; the X opens a little as the section reaches the middle of the screen. */
+.crossed-cards--revealed .phone-card { opacity: 1; scale: 1; animation: crossed-pop 760ms cubic-bezier(.34, 1.56, .64, 1) both; }
+.crossed-cards--revealed .phone-card--left { --x: calc(-4px - 16px * var(--spread)); --r: calc(-17deg - 9deg * var(--spread)); z-index: 1; }
+.crossed-cards--revealed .phone-card--right { --x: calc(4px + 16px * var(--spread)); --r: calc(17deg + 9deg * var(--spread)); z-index: 2; animation-delay: 90ms; }
+@keyframes crossed-pop {
+  0% { opacity: 0; scale: .7; }
+  55% { opacity: 1; scale: 1.07; }
+  100% { opacity: 1; scale: 1; }
+}
+
+/* First arrow press: that card pops out and comes to the front. */
+.crossed-cards--left .phone-card--left { --x: -104px; --r: -22deg; scale: 1.08; z-index: 3; box-shadow: 0 26px 60px rgba(23, 59, 94, .32); }
+.crossed-cards--left .phone-card--right { --x: 46px; --r: 12deg; scale: .94; filter: saturate(.7) opacity(.75); }
+.crossed-cards--right .phone-card--right { --x: 104px; --r: 22deg; scale: 1.08; z-index: 3; box-shadow: 0 26px 60px rgba(23, 59, 94, .32); }
+.crossed-cards--right .phone-card--left { --x: -46px; --r: -12deg; scale: .94; filter: saturate(.7) opacity(.75); }
+.crossed-cards--left .phone-card, .crossed-cards--right .phone-card { animation: none; }
+
+/* ---------- Matches strip ---------- */
+.swipe-matches { margin-bottom: 22px; }
+.swipe-matches h2 { font-size: 20px; margin: 0 0 12px; }
+.swipe-matches ul { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.swipe-matches li { display: flex; align-items: center; gap: 10px; padding: 6px 14px 6px 6px; border: 1px solid var(--border); border-radius: 999px; background: var(--cream); }
+.swipe-matches li img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; }
+.swipe-matches li span:last-child { display: flex; flex-direction: column; line-height: 1.2; }
+.swipe-matches small { color: var(--ink-muted); font-size: 12px; }
+
+/* ---------- Full-screen deck ---------- */
+.swipe-dialog {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: var(--ivory);
+  color: var(--ink);
+  overflow: hidden;
+}
+.swipe-dialog::backdrop { background: rgba(23, 59, 94, .55); }
+.swipe-shell { display: grid; grid-template-rows: auto 1fr auto auto; height: 100%; max-width: 760px; margin: 0 auto; padding: 18px 20px 22px; }
+.swipe-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.swipe-header h2 { font-size: 30px; margin: 0; }
+.swipe-close { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 50%; background: var(--cream); color: var(--blue); cursor: pointer; }
+.swipe-close:hover { background: var(--blue-surface); }
+
+.swipe-stage { position: relative; display: grid; place-items: center; min-height: 0; }
+.swipe-card {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  width: min(370px, 86vw);
+  height: min(560px, 66dvh);
+  border: 1px solid var(--border);
+  border-radius: 34px;
+  background: var(--cream);
+  box-shadow: 0 22px 50px rgba(23, 59, 94, .16);
+  overflow: hidden;
+  transition: transform 300ms cubic-bezier(.2, .8, .2, 1), opacity 300ms;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  will-change: transform;
+}
+.swipe-card--top { cursor: grab; }
+.swipe-card-photo { position: relative; flex: 0 0 50%; display: grid; place-items: center; background: var(--blue-surface); }
+.swipe-shell--skill .swipe-card-photo { background: var(--sand); }
+.swipe-card-photo img { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.swipe-card-initials { font: 600 72px/1 'Lora', Georgia, serif; color: var(--blue); letter-spacing: -.04em; }
+.swipe-stamp {
+  position: absolute;
+  top: 22px;
+  padding: 4px 14px;
+  border: 4px solid currentColor;
+  border-radius: 10px;
+  background: rgba(255, 253, 248, .9);
+  font: 700 28px/1.1 'DM Sans', sans-serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  pointer-events: none;
+  transition: opacity 120ms;
+}
+.swipe-stamp--pass { right: 20px; color: var(--orange); transform: rotate(14deg); }
+.swipe-stamp--like { left: 20px; color: var(--blue); transform: rotate(-14deg); }
+.swipe-card-body { display: flex; flex-direction: column; gap: 8px; padding: 18px 22px 20px; min-height: 0; overflow: hidden; }
+.swipe-card-body h3 { font-size: 26px; margin: 0; }
+.swipe-card-bio { margin: 0; color: var(--ink-muted); font-size: 14px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.swipe-reasons { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; font-size: 14px; font-weight: 600; color: var(--blue); }
+.swipe-reasons li { display: flex; align-items: center; gap: 6px; }
+.swipe-reasons svg { flex-shrink: 0; color: var(--ocean); }
+.swipe-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.swipe-chip { padding: 3px 10px; border-radius: 999px; background: var(--blue-surface); color: var(--blue); font-size: 13px; font-weight: 500; }
+.swipe-chip--soft { background: var(--ivory); color: var(--ink); border: 1px solid var(--border); }
+.swipe-card-meta { margin: auto 0 0; color: var(--ink-muted); font-size: 13px; }
+
+.swipe-empty { display: grid; justify-items: center; gap: 10px; max-width: 340px; text-align: center; color: var(--ink-muted); }
+.swipe-empty strong { color: var(--blue); font: 500 22px 'Lora', Georgia, serif; }
+.swipe-empty p { margin: 0; }
+.swipe-empty svg { color: var(--ocean); }
+.swipe-empty-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.swipe-spinner { width: 28px; height: 28px; border: 3px solid var(--blue-surface-strong); border-top-color: var(--blue); border-radius: 50%; animation: swipe-spin 800ms linear infinite; }
+@keyframes swipe-spin { to { transform: rotate(360deg); } }
+
+.swipe-notice { margin: 8px auto 0; padding: 8px 14px; border-radius: 8px; background: #FBEDE6; color: #7A3B22; font-size: 14px; text-align: center; }
+
+.swipe-controls { display: flex; align-items: center; justify-content: center; gap: 22px; padding-top: 14px; }
+.swipe-action {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  background: var(--cream);
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(23, 59, 94, .12);
+  transition: transform 180ms cubic-bezier(.34, 1.56, .64, 1), background-color 180ms, color 180ms;
+}
+.swipe-action:hover:not(:disabled) { transform: scale(1.08); }
+.swipe-action:disabled { opacity: .4; cursor: default; }
+.swipe-action--pass { color: var(--orange); }
+.swipe-action--like { color: var(--blue); }
+.swipe-action.is-armed { transform: scale(1.14); color: var(--cream); }
+.swipe-action--pass.is-armed { background: var(--orange); border-color: var(--orange); }
+.swipe-action--like.is-armed { background: var(--blue); border-color: var(--blue); }
+.swipe-hint { display: inline-flex; align-items: center; gap: 6px; margin: 0; color: var(--ink-muted); font-size: 14px; text-align: center; }
+
+.swipe-match { position: absolute; inset: 0; z-index: 40; display: grid; place-items: center; background: rgba(248, 245, 238, .82); }
+.swipe-match-card {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  width: min(340px, 86vw);
+  padding: 30px 26px;
+  border-radius: 28px;
+  background: var(--blue);
+  color: var(--cream);
+  text-align: center;
+  box-shadow: 0 26px 60px rgba(23, 59, 94, .35);
+  animation: match-pop 560ms cubic-bezier(.34, 1.56, .64, 1) both;
+}
+.swipe-match-card h3 { color: var(--cream); font-size: 28px; margin: 0; }
+.swipe-match-card p { margin: 0 0 8px; }
+.swipe-match-card .button { background: var(--cream); color: var(--blue); }
+@keyframes match-pop { 0% { opacity: 0; scale: .6; rotate: -6deg; } 100% { opacity: 1; scale: 1; rotate: 0deg; } }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+  .crossed-cards { grid-template-columns: 1fr; padding: 22px 18px; }
+  .crossed-cards-stage { height: 380px; }
+  .phone-card { width: 168px; height: 320px; }
+  .crossed-cards--left .phone-card--left { --x: -70px; }
+  .crossed-cards--right .phone-card--right { --x: 70px; }
+}
+@media (max-width: 420px) {
+  .phone-card { width: 150px; height: 290px; padding: 22px 14px; }
+  .phone-card strong { font-size: 23px; }
+  .crossed-cards--left .phone-card--left { --x: -52px; }
+  .crossed-cards--left .phone-card--right { --x: 34px; }
+  .crossed-cards--right .phone-card--right { --x: 52px; }
+  .crossed-cards--right .phone-card--left { --x: -34px; }
+  .swipe-hint { font-size: 12px; }
+  .swipe-controls { gap: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phone-card, .swipe-card, .swipe-action, .swipe-match-card { transition: none !important; animation: none !important; }
+}

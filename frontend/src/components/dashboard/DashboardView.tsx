@@ -13,6 +13,7 @@ import { GettingStarted } from './GettingStarted'
 import { ProfileDetailsDialog } from './ProfileDetailsDialog'
 import { TaskDialog } from './RequestOfferDialogs'
 import { ErrorPanel, LoadingRows, WorkspaceNotice, useWorkspaceNotice } from './DashboardFeedback'
+import { SwipeLauncher } from '../swipe/SwipeLauncher'
 import type { Person, ProfileDetails, RequestStatus } from './types'
 
 export function DashboardView() {
@@ -77,6 +78,7 @@ export function DashboardView() {
         <GettingStarted profile={snapshot.profile} onProfile={openProfile} onFind={findBuddy} onSkill={() => setDialog('skill')} />
         <ProfileSummary ref={editorRef} id="profile-summary" name={profileName} initials={initials} profile={snapshot.profile} sourceKind={workspace.kind} onSave={saveProfile} />
       </> : recoverableError ? <ErrorPanel message={workspace.error} retry={async () => { await workspace.retry(); setRecoverableError(false) }} /> : isLoading ? <div className="dashboard-layout"><div className="dashboard-main"><LoadingRows rows={4} /></div><aside className="dashboard-aside"><LoadingRows rows={2} /></aside></div> : <>
+        <SwipeLauncher />
         <div className="dashboard-layout">
           <div className="dashboard-main">
             <RequestsPanel requests={snapshot.requests} people={snapshot.people} isBusy={(id) => workspace.isBusy(`request:${id}`)} onFind={findBuddy} onChange={async (id, next) => { setRecoverableError(false); try { await changeRequest(id, next) } catch { setRecoverableError(true) } }} />

@@ -7,6 +7,7 @@ from sqlalchemy import func, inspect, or_, text
 from sqlalchemy.orm import Session
 
 from . import models, schemas, gemini
+from .swipe import router as swipe_router
 from .auth import current_email, current_user
 from .database import Base, engine, get_db
 from .privacy import aggregate_heat_points
@@ -42,6 +43,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(swipe_router)  # Buddies / SkillShare swipe decks (app/swipe.py)
 
 
 @app.get("/")
