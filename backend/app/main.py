@@ -2,6 +2,7 @@ import os
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import inspect, text
 from sqlalchemy.orm import Session
 
 from . import models, schemas, gemini
@@ -9,6 +10,21 @@ from .auth import current_email, current_user
 from .database import Base, engine, get_db
 
 Base.metadata.create_all(bind=engine)  # creates tables on startup
+
+# create_all() never adds columns to an existing table, so add the profile columns
+# to databases created before they existed (no need to delete ubchub.db).
+_PROFILE_COLUMNS = {"interests": "''", "mode": "'either'", "energy": "'medium'"}
+
+
+def _add_missing_profile_columns() -> None:
+    existing = {c["name"] for c in inspect(engine).get_columns("users")}
+    with engine.begin() as conn:
+        for name, default in _PROFILE_COLUMNS.items():
+            if name not in existing:
+                conn.execute(text(f"ALTER TABLE users ADD COLUMN {name} VARCHAR NOT NULL DEFAULT {default}"))
+
+
+_add_missing_profile_columns()
 
 # Comma-separated list in .env overrides the default.
 CORS_ORIGINS = [o.strip() for o in os.getenv(
@@ -43,6 +59,18 @@ def create_profile(data: schemas.UserCreate, email: str = Depends(current_email)
         return existing
     user = models.User(email=email, **data.model_dump())
     db.add(user)
+    db.commit()
+    db.refresh(user)
+    return user
+
+
+@app.put("/me", response_model=schemas.UserOut)
+def update_profile(data: schemas.UserUpdate, user: models.User = Depends(current_user), db: Session = Depends(get_db)):
+    """Edit the caller's own profile. Only fields included in the request are changed."""
+    for field, value in data.model_dump(exclude_unset=True).items():
+        if value is None:
+            raise HTTPException(422, f"{field} cannot be null")
+        setattr(user, field, value)
     db.commit()
     db.refresh(user)
     return user

@@ -17,3 +17,10 @@ Before extending the service, document expected models/endpoints, error handling
 ## Local development
 
 Dependencies are in `requirements.txt`; use an isolated virtual environment. Copy `.env.example` to an ignored `.env` and supply only credentials you manage. The frontend preview defaults to its own local-only server at port 5174, whereas the starter API/CORS config currently expects 5173. Keep origins explicit when integrating the two; do not replace safe restrictions with a blanket production CORS rule.
+
+## Profiles
+
+- `User` carries Buddies matching fields: `interests` (comma-separated), `mode` (`in_person` | `online` | `either`) and `energy` (`low` | `medium` | `high`). Allowed values are enforced by `schemas.Mode` / `schemas.Energy`.
+- `POST /users` accepts them on creation; `PUT /me` edits the caller's own profile (partial update, only sent fields change). Email comes from the verified token and XP is server-managed, so neither is editable.
+- `main._add_missing_profile_columns()` adds these columns to databases created before they existed, because `create_all()` never alters tables. Replace with real migrations (e.g. Alembic) before production.
+- Tests: `pip install pytest`, then `python -m pytest tests` from `backend/`. They override `auth.current_email`, so no Auth0 tenant or network is needed.

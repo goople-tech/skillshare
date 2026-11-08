@@ -19,6 +19,7 @@ async function request(path, options = {}) {
 export const api = {
   me: () => request('/me'),
   signup: (user) => request('/users', { method: 'POST', body: JSON.stringify(user) }),
+  updateMe: (changes) => request('/me', { method: 'PUT', body: JSON.stringify(changes) }),
   getListings: (category) => request('/listings' + (category ? `?category=${category}` : '')),
   createListing: (listing) => request('/listings', { method: 'POST', body: JSON.stringify(listing) }),
   join: (listingId) => request(`/listings/${listingId}/join`, { method: 'POST' }),
