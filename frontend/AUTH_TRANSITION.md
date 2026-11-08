@@ -2,7 +2,7 @@
 
 ## Ownership
 
-Auth0 integration is owned by a separate teammate and was added upstream in `5e85cf4`. Do not add a second public-facing auth flow, client secrets, or a false university-email verification claim from the landing page. The client-only `src/pages/auth.tsx` (login/callback), `src/pages/profile.tsx` and `src/components/AuthShell.tsx` use `@auth0/auth0-react` (the old `src/main.jsx` entry was removed; `src/App.jsx` is the signed-in app rendered at `/profile`); the backend verifies tokens and UBC email eligibility. These are separate from the static page runtime.
+Auth0 integration is owned by a separate teammate and was added upstream in `5e85cf4`. Do not add a second public-facing auth flow, client secrets, or a false university-email verification claim from the landing page. The client-only `src/pages/auth.tsx` (login/callback), `src/pages/account.tsx` and `src/components/AuthShell.tsx` use `@auth0/auth0-react` (the old `src/main.jsx` entry was removed; `src/App.jsx` is the signed-in app rendered at `/account`); the backend verifies tokens and UBC email eligibility. These are separate from the static page runtime.
 
 ## Current boundary
 

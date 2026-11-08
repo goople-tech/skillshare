@@ -6,7 +6,7 @@ import { AuthShell } from '../components/AuthShell'
 export default function AuthPage() {
   return (
     <AuthShell title="Log in · UBC Ver.">
-      <Navigate to="/profile" replace />
+      <Navigate to="/account" replace />
     </AuthShell>
   )
 }
