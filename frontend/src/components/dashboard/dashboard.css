@@ -41,10 +41,13 @@
   color: var(--blue); background: transparent; border: 0; border-radius: 50%;
 }
 .workspace-icon-btn:hover { background: var(--blue-surface); }
+/* The three-line menu is mobile-only. This rule must come after .workspace-icon-btn, which would otherwise show it. */
+.workspace-icon-btn.workspace-nav-menu { display: none; }
 .notification-count {
-  position: absolute; top: 0; right: -1px; min-width: 16px; height: 16px;
-  font: 600 12px/16px 'DM Sans', sans-serif; text-align: center;
-  color: var(--cream); background: var(--orange); border: 2px solid var(--ivory); border-radius: 50%;
+  position: absolute; top: -3px; right: -5px; box-sizing: border-box; min-width: 20px; height: 20px; padding: 0 4px;
+  display: flex; align-items: center; justify-content: center;
+  font: 700 12px/1 'DM Sans', sans-serif; font-variant-numeric: tabular-nums;
+  color: var(--cream); background: var(--orange); border: 2px solid var(--ivory); border-radius: 10px;
 }
 .profile-menu-trigger { display: inline-flex; align-items: center; flex-direction: row; flex-wrap: nowrap; gap: 7px; padding: 3px 7px 3px 3px; color: var(--blue); }
 .profile-nav-avatar { width: 34px; height: 34px; border-radius: 50%; background: var(--blue-surface); color: var(--blue); font-size: 14px; }
@@ -278,7 +281,7 @@
 }
 @media (max-width: 870px) {
  .workspace-nav { display: none; }
- .workspace-nav-menu { display: inline-grid; }
+ .workspace-icon-btn.workspace-nav-menu { display: inline-grid; }
  .profile-menu-trigger { margin-left: 0; }
  .dashboard-layout { grid-template-columns: minmax(0,1.25fr) minmax(230px,1fr); }
  .dashboard-lower-grid, .matches-grid { grid-template-columns: 1fr; }
