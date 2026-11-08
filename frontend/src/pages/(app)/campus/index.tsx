@@ -13,7 +13,7 @@ export default function CampusPage() { return <SessionProvider><CampusContent />
 function CampusContent() {
   const { isLoaded, isSignedIn, signIn } = useSession()
   const navigate = useNavigate()
-  return <><title>Campus Activity — Flockwork</title><AppNavigation activities={[]} onFind={() => navigate('/skillshare')} onEditProfile={() => navigate('/profile')} />
+  return <><title>Campus Activity — Flockwork</title><AppNavigation onFind={() => navigate('/skillshare')} onEditProfile={() => navigate('/profile')} />
     {isLoaded && <main className="dashboard-content discovery-content">{isSignedIn ? <div className="campus-page">
       <header>
         <p className="projects-eyebrow"><MapPin size={15} aria-hidden="true" /> Campus Activity</p>

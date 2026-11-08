@@ -7,5 +7,5 @@ import '../../../components/dashboard/dashboard.css'
 export default function BuddiesMessages() { return <SessionProvider><Shell /></SessionProvider> }
 function Shell() {
   const navigate = useNavigate()
-  return <><AppNavigation activities={[]} onFind={() => navigate('/buddies')} onEditProfile={() => navigate('/profile')} /><MessagingPage kind="buddy" /></>
+  return <><AppNavigation onFind={() => navigate('/buddies')} onEditProfile={() => navigate('/profile')} /><MessagingPage kind="buddy" /></>
 }

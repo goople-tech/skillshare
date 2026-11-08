@@ -7,5 +7,5 @@ import '../../../components/dashboard/dashboard.css'
 export default function SkillShareMessages() { return <SessionProvider><Shell /></SessionProvider> }
 function Shell() {
   const navigate = useNavigate()
-  return <><AppNavigation activities={[]} onFind={() => navigate('/skillshare')} onEditProfile={() => navigate('/profile')} /><MessagingPage kind="skill" /></>
+  return <><AppNavigation onFind={() => navigate('/skillshare')} onEditProfile={() => navigate('/profile')} /><MessagingPage kind="skill" /></>
 }

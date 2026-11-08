@@ -4,6 +4,7 @@ import { useSession } from './useSession'
 import { Bell, Check, CheckCheck, ChevronDown, FolderKanban, GraduationCap, Home, MapPin, Menu, Search, UserRound, Users, X } from 'lucide-react'
 import { Wordmark } from '../landing/Wordmark'
 import { Avatar, AvatarFallback, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui'
+import { sampleSnapshot } from './sampleData'
 import type { Activity } from './types'
 
 const links = [
@@ -13,7 +14,9 @@ const links = [
   { id: 'projects', label: 'Projects', icon: FolderKanban },
   { id: 'campus-activity', label: 'Campus Activity', icon: MapPin },
 ]
-export function AppNavigation({ activities, onFind, onEditProfile }: { activities: Activity[]; onFind: () => void; onEditProfile: () => void }) {
+// Only the dashboard owns live notification state. Other pages leave `activities` out and show the same sample notifications, so the bell count doesn't vanish when you change tab.
+export function AppNavigation({ activities: activitiesProp, onFind, onEditProfile }: { activities?: Activity[]; onFind: () => void; onEditProfile: () => void }) {
+  const activities = activitiesProp ?? sampleSnapshot.activities
   const { isLoaded, isSignedIn, user, userLoading, signIn, signOut } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [notificationOpen, setNotificationOpen] = useState(false)
@@ -54,7 +57,7 @@ export function AppNavigation({ activities, onFind, onEditProfile }: { activitie
       <button className="workspace-icon-btn notification-btn" onClick={() => setNotificationOpen(!notificationOpen)} aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={notificationOpen} aria-controls="notification-panel"><Bell size={19} />{unread > 0 && <span className="notification-count" aria-hidden="true">{unread}</span>}</button>
       {isLoaded && !isSignedIn && <button data-testid="nav-sign-in-button" className="button button--primary dashboard-signin" onClick={() => void signIn()}>Sign In<Check size={15} /> </button>}
       {isLoaded && isSignedIn && userLoading && <span className="skeleton skeleton-avatar" />}
-      {isLoaded && isSignedIn && !userLoading && user && <DropdownMenu><DropdownMenuTrigger aria-label="Profile menu" className="profile-menu-trigger"><Avatar className="profile-nav-avatar">{user.imageUrl ? <AvatarImage src={user.imageUrl} referrerPolicy="no-referrer" /> : null}<AvatarFallback>{initials}</AvatarFallback></Avatar><ChevronDown size={14} /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuLabel><span data-testid="nav-user-name">{name}</span><small data-testid="nav-user-email">{user.email}</small></DropdownMenuLabel><DropdownMenuItem onClick={() => navigate('/profile')}><UserRound size={16} /> View profile</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onClick={() => signOut()}><span>Log Out</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu>}
+      {isLoaded && isSignedIn && !userLoading && user && <DropdownMenu><DropdownMenuTrigger aria-label="Profile menu" className="profile-menu-trigger"><Avatar className="profile-nav-avatar">{user.imageUrl ? <AvatarImage src={user.imageUrl} referrerPolicy="no-referrer" /> : null}<AvatarFallback>{initials}</AvatarFallback></Avatar><ChevronDown size={14} /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuLabel><span data-testid="nav-user-name">{name}</span><small data-testid="nav-user-email">{user.email}</small></DropdownMenuLabel><DropdownMenuItem onClick={() => navigate('/profile')}><UserRound size={16} /> Manage profile</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onClick={() => signOut()}><span>Log Out</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu>}
       <button className="workspace-nav-menu workspace-icon-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={mobileOpen} aria-controls="workspace-mobile-nav">{mobileOpen ? <X size={20} /> : <Menu size={20} />}</button>
     </div></header>
     {mobileOpen && <nav id="workspace-mobile-nav" className="workspace-mobile-nav" aria-label="Mobile dashboard navigation">{links.map((item) => <button key={item.id} className="workspace-mobile-item" aria-current={(item.id === 'skills-matches' && location.pathname === '/skillshare') || (item.id === 'buddies' && location.pathname === '/buddies') ? 'location' : undefined} onClick={() => navigateSection(item.id)}><item.icon size={16} />{item.label}</button>)}<button className="search-mobile" onClick={() => setSearchOpen(true)}><Search size={16} /> Find students, courses, or skills</button></nav>}
