@@ -74,8 +74,9 @@ def _rating_rows(db: Session, viewer_id: int | None):
         or_(models.SkillExchange.participant_low_id == models.SkillReview.reviewee_id,
             models.SkillExchange.participant_high_id == models.SkillReview.reviewee_id),
         models.SkillReview.reviewer_id != models.SkillReview.reviewee_id,
-        ~reviewer.email.like("%@demo.ubcver.invalid"),
-        ~reviewee.email.like("%@demo.ubcver.invalid"),
+        # DEMO: count demo students' ratings too, so the demo data shows ratings. Restore these two lines after the demo.
+        # ~reviewer.email.like("%@demo.ubcver.invalid"),
+        # ~reviewee.email.like("%@demo.ubcver.invalid"),
     )
     if viewer_id is not None:
         q = q.filter(models.SkillReview.reviewee_id != viewer_id)
@@ -86,7 +87,8 @@ def _rating_rows(db: Session, viewer_id: int | None):
 def skill_catalog(_: models.User = Depends(current_user), db: Session = Depends(get_db)):
     """A bounded projection of existing public CSV skill fields for autocomplete."""
     rows = db.query(models.User.skills_teach, models.User.skills_learn).filter(
-        ~models.User.email.like("%@demo.ubcver.invalid"),
+        # DEMO: include demo students' skills in the autocomplete. Restore after the demo.
+        # ~models.User.email.like("%@demo.ubcver.invalid"),
         or_(models.User.skills_teach != "", models.User.skills_learn != ""),
     ).limit(200).all()
     options = {label.casefold(): label for row in rows for raw in row for label in _items(raw or "").values()}
@@ -110,7 +112,9 @@ def discover(
     above that value. Missing feedback is NULL, never an invented zero rating.
     ``offering`` finds people who want something the caller can teach.
     """
-    candidates = db.query(models.User).filter(models.User.id != me.id, ~models.User.email.like("%@demo.ubcver.invalid"))
+    # DEMO: demo students are shown in discovery too. Restore the commented line (and drop the other) after the demo.
+    # candidates = db.query(models.User).filter(models.User.id != me.id, ~models.User.email.like("%@demo.ubcver.invalid"))
+    candidates = db.query(models.User).filter(models.User.id != me.id)
     if category:
         candidates = candidates.filter(_category_condition(category))
     if seeking and seeking.strip():
