@@ -1,0 +1,54 @@
+/* Profile form, styled with the UBC Ver. landing palette (see landing.css). */
+.pf-page { min-height: 100svh; display: grid; place-items: start center; padding: 40px 32px 64px; background: var(--ivory); }
+.pf-card { width: min(1360px, 100%); display: grid; grid-template-columns: 400px 1fr; background: var(--cream); border: 1px solid var(--border); border-radius: 16px; box-shadow: 0 10px 30px #173B5E12; overflow: hidden; }
+.pf-aside { background: var(--blue); color: var(--cream); padding: 56px 44px; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.pf-aside .eyebrow { color: var(--sand); }
+.pf-aside h1 { color: var(--cream); }
+.pf-aside .pf-lead { color: #DCE4E8; }
+.pf-aside .pf-privacy { margin-top: auto; padding-top: 28px; color: #B9C8D1; }
+.pf-aside .pf-mark { color: var(--sand); }
+.pf-main { padding: 56px 64px 52px; min-width: 0; }
+.pf-mark { width: 38px; height: 42px; color: var(--blue); margin-bottom: 18px; }
+.pf-card h1 { font-size: 34px; margin: 8px 0 10px; }
+.pf-lead { color: var(--ink-muted); font-size: 15px; max-width: 46ch; }
+.pf-form { margin-top: 0; display: grid; gap: 34px; }
+.pf-section { border: 0; padding: 0; margin: 0; display: grid; gap: 16px; min-width: 0; }
+.pf-section > legend { padding: 0 0 12px; width: 100%; border-bottom: 1px solid var(--border); color: var(--blue); font-family: 'Lora', Georgia, serif; font-size: 19px; font-weight: 500; letter-spacing: -.02em; }
+.pf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.pf-field { display: grid; gap: 6px; min-width: 0; }
+.pf-field label, .pf-label { color: var(--ink); font-size: 13px; font-weight: 600; }
+.pf-opt { color: var(--ink-muted); font-weight: 400; }
+.pf-hint { color: var(--ink-muted); font-size: 12.5px; line-height: 1.45; }
+.pf-input, .pf-textarea { width: 100%; padding: 12px 14px; border: 1px solid #BFCACD; border-radius: 8px; background: #fff; color: var(--ink); font-size: 15px; transition: border-color .2s, box-shadow .2s; }
+.pf-textarea { min-height: 96px; resize: vertical; line-height: 1.5; }
+.pf-input::placeholder, .pf-textarea::placeholder { color: #8A9AA0; }
+.pf-input:hover, .pf-textarea:hover { border-color: var(--ocean); }
+.pf-input:focus-visible, .pf-textarea:focus-visible { outline: 3px solid #B9674533; outline-offset: 0; border-color: var(--orange); }
+.pf-choices { display: flex; flex-wrap: wrap; gap: 8px; }
+.pf-choice { position: relative; }
+.pf-choice input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.pf-choice span { display: inline-flex; align-items: center; padding: 9px 16px; border: 1px solid #BFCACD; border-radius: 999px; background: #fff; color: var(--blue); font-size: 14px; font-weight: 550; transition: background .2s, border-color .2s, color .2s; }
+.pf-choice input:hover + span { border-color: var(--ocean); background: var(--ivory); }
+.pf-choice input:checked + span { background: var(--blue); border-color: var(--blue); color: var(--cream); }
+.pf-choice input:focus-visible + span { outline: 3px solid var(--orange); outline-offset: 3px; }
+.pf-error { padding: 12px 14px; border: 1px solid #D9A79D; border-radius: 8px; background: #F8ECE9; color: #7A2E23; font-size: 14px; }
+.pf-actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.pf-actions .button { padding: 14px 26px; font-size: 14px; }
+.pf-actions .button:disabled { opacity: .6; transform: none; }
+.pf-privacy { color: var(--ink-muted); font-size: 12.5px; }
+@media (max-width: 900px) {
+  .pf-card { grid-template-columns: 1fr; }
+  .pf-aside { padding: 32px 28px; }
+  .pf-aside .pf-privacy { margin-top: 12px; padding-top: 0; }
+  .pf-main { padding: 32px 28px 30px; }
+}
+@media (max-width: 680px) {
+  .pf-page { padding: 24px 14px 48px; }
+  .pf-card { border-radius: 12px; }
+  .pf-aside { padding: 24px 20px; }
+  .pf-main { padding: 24px 20px 26px; }
+  .pf-card h1 { font-size: 28px; }
+  .pf-row { grid-template-columns: 1fr; }
+  .pf-actions .button { flex: 1 1 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .pf-input, .pf-textarea, .pf-choice span { transition: none; } }

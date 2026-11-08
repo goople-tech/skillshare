@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import { api, setTokenGetter } from './api'
+import { CampusMark } from './components/landing/CampusMark'
+import './profile.css'
 
 const CATEGORIES = ['', 'study', 'skill', 'ride']
 const emptyListing = { category: 'study', title: '', description: '', tag: '', location: '', time: '', capacity: 4 }
@@ -85,31 +87,87 @@ function ProfileForm({ initial, onDone, onCancel }) {
     finally { setSaving(false) }
   }
 
+  const field = (id, label, input, hint, optional) => (
+    <div className="pf-field">
+      <label htmlFor={id}>{label}{optional && <span className="pf-opt"> (optional)</span>}</label>
+      {input}
+      {hint && <span className="pf-hint" id={`${id}-hint`}>{hint}</span>}
+    </div>
+  )
+  const choices = (name, labels) => (
+    <div className="pf-choices">
+      {Object.entries(labels).map(([v, label]) => (
+        <label key={v} className="pf-choice">
+          <input type="radio" name={name} value={v} checked={form[name] === v} onChange={set(name)} />
+          <span>{label}</span>
+        </label>
+      ))}
+    </div>
+  )
+
   return (
-    <form onSubmit={submit} style={{ maxWidth: 400, margin: '40px auto', fontFamily: 'sans-serif', display: 'grid', gap: 8 }}>
-      <h2>{isEdit ? 'Edit your profile' : 'Create your profile'}</h2>
-      <input placeholder="Name" value={form.name} onChange={set('name')} required />
-      <textarea placeholder="Short bio" value={form.bio} onChange={set('bio')} rows={2} />
-      <input placeholder="Courses (CPSC 213, BIOL 112)" value={form.courses} onChange={set('courses')} />
-      <input placeholder="Interests (hiking, board games, anime)" value={form.interests} onChange={set('interests')} />
-      <input placeholder="Skills I can teach" value={form.skills_teach} onChange={set('skills_teach')} />
-      <input placeholder="Skills I want to learn" value={form.skills_learn} onChange={set('skills_learn')} />
-      <label>
-        Meet up{' '}
-        <select value={form.mode} onChange={set('mode')}>
-          {Object.entries(MODE_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
-        </select>
-      </label>
-      <label>
-        Energy level{' '}
-        <select value={form.energy} onChange={set('energy')}>
-          {Object.entries(ENERGY_LABELS).map(([v, label]) => <option key={v} value={v}>{label}</option>)}
-        </select>
-      </label>
-      <button disabled={saving}>{saving ? 'Saving…' : isEdit ? 'Save changes' : 'Continue'}</button>
-      {isEdit && <button type="button" onClick={onCancel}>Cancel</button>}
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-    </form>
+    <main className="pf-page">
+      <div className="pf-card">
+        <aside className="pf-aside">
+          <CampusMark className="pf-mark" />
+          <span className="eyebrow">{isEdit ? 'YOUR PROFILE' : 'WELCOME TO UBC VER.'}</span>
+          <h1>{isEdit ? 'Edit your profile' : 'Tell us a bit about you'}</h1>
+          <p className="pf-lead">
+            {isEdit ? 'Keep your details current so the people you match with get the right picture.'
+              : 'This is how other students will get to know you. Share as much or as little as you like, and you can change it any time.'}
+          </p>
+          <p className="pf-privacy">Only verified UBC students can see your profile.</p>
+        </aside>
+
+        <div className="pf-main">
+        <form className="pf-form" onSubmit={submit}>
+          <fieldset className="pf-section">
+            <legend>About you</legend>
+            {field('pf-name', 'Name', <input id="pf-name" className="pf-input" value={form.name} onChange={set('name')} placeholder="What should people call you?" autoComplete="name" required />)}
+            {field('pf-bio', 'Short bio', <textarea id="pf-bio" className="pf-textarea" value={form.bio} onChange={set('bio')} placeholder="A sentence or two about what you're into." aria-describedby="pf-bio-hint" />, 'Shown on your profile.', true)}
+          </fieldset>
+
+          <fieldset className="pf-section">
+            <legend>Your campus life</legend>
+            <div className="pf-row">
+            {field('pf-courses', 'Courses', <input id="pf-courses" className="pf-input" value={form.courses} onChange={set('courses')} placeholder="CPSC 213, BIOL 112" aria-describedby="pf-courses-hint" />, 'Separate with commas. Helps match you with study partners.', true)}
+            {field('pf-interests', 'Interests', <input id="pf-interests" className="pf-input" value={form.interests} onChange={set('interests')} placeholder="Hiking, board games, anime" aria-describedby="pf-interests-hint" />, 'Separate with commas.', true)}
+            </div>
+          </fieldset>
+
+          <fieldset className="pf-section">
+            <legend>Skill swap</legend>
+            <div className="pf-row">
+              {field('pf-teach', 'I can teach', <input id="pf-teach" className="pf-input" value={form.skills_teach} onChange={set('skills_teach')} placeholder="Python, guitar" aria-describedby="pf-teach-hint" />, 'Skills you could help others with.', true)}
+              {field('pf-learn', 'I want to learn', <input id="pf-learn" className="pf-input" value={form.skills_learn} onChange={set('skills_learn')} placeholder="Photography, Spanish" aria-describedby="pf-learn-hint" />, 'Skills you would like to pick up.', true)}
+            </div>
+          </fieldset>
+
+          <fieldset className="pf-section">
+            <legend>How you like to meet</legend>
+            <div className="pf-row">
+            <div className="pf-field" role="radiogroup" aria-labelledby="pf-mode-label">
+              <span className="pf-label" id="pf-mode-label">Meet up</span>
+              {choices('mode', MODE_LABELS)}
+            </div>
+            <div className="pf-field" role="radiogroup" aria-labelledby="pf-energy-label">
+              <span className="pf-label" id="pf-energy-label">Energy level</span>
+              {choices('energy', ENERGY_LABELS)}
+              <span className="pf-hint">From quiet study sessions to full-on adventures.</span>
+            </div>
+            </div>
+          </fieldset>
+
+          {error && <p className="pf-error" role="alert">{error}</p>}
+
+          <div className="pf-actions">
+            <button className="button button--primary button--large" disabled={saving}>{saving ? 'Saving…' : isEdit ? 'Save changes' : 'Continue'}</button>
+            {isEdit && <button type="button" className="button button--outline button--large" onClick={onCancel}>Cancel</button>}
+          </div>
+        </form>
+        </div>
+      </div>
+    </main>
   )
 }
 
