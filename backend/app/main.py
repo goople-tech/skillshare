@@ -1,5 +1,4 @@
 import os
-from datetime import datetime, timedelta
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,7 +13,7 @@ Base.metadata.create_all(bind=engine)  # creates tables on startup
 
 # create_all() never adds columns to an existing table, so add the profile columns
 # to databases created before they existed (no need to delete ubchub.db).
-_PROFILE_COLUMNS = {"interests": "''", "mode": "'either'", "energy": "'medium'"}
+_PROFILE_COLUMNS = {"interests": "''", "mode": "'either'", "energy": "'medium'", "photo": "''"}
 
 
 def _add_missing_profile_columns() -> None:
@@ -22,7 +21,8 @@ def _add_missing_profile_columns() -> None:
     with engine.begin() as conn:
         for name, default in _PROFILE_COLUMNS.items():
             if name not in existing:
-                conn.execute(text(f"ALTER TABLE users ADD COLUMN {name} VARCHAR NOT NULL DEFAULT {default}"))
+                kind = "TEXT" if name == "photo" else "VARCHAR"
+                conn.execute(text(f"ALTER TABLE users ADD COLUMN {name} {kind} NOT NULL DEFAULT {default}"))
 
 
 _add_missing_profile_columns()
@@ -123,7 +123,7 @@ def ai_draft(req: schemas.DraftRequest, _: models.User = Depends(current_user)):
 def ai_match(user: models.User = Depends(current_user), db: Session = Depends(get_db)):
     """Suggest the best listings for the logged-in user, with a reason for each."""
     others = db.query(models.Listing).filter(models.Listing.owner_id != user.id).all()
-    user_d = schemas.UserOut.model_validate(user).model_dump()
+    user_d = schemas.UserOut.model_validate(user).model_dump(exclude={"photo"})
     listings_d = [{"id": l.id, "category": l.category, "title": l.title,
                    "tag": l.tag, "description": l.description, "time": l.time} for l in others]
     return gemini.rank_matches(user_d, listings_d)
@@ -155,69 +155,3 @@ def skill_matches(user_p: models.User = Depends(current_user), db: Session = Dep
             })
     results.sort(key=lambda r: (r["mutual"], len(r["they_teach_me"])), reverse=True)
     return results
-
-
-# ---------- Live presence (heatmap) ----------
-# One live point per person, refreshed on a timer, then forgotten.
-PRESENCE_REFRESH_SECONDS = 30
-PRESENCE_TTL_SECONDS = 180
-
-
-def _presence_cutoff() -> datetime:
-    return datetime.utcnow() - timedelta(seconds=PRESENCE_TTL_SECONDS)
-
-
-def _prune_presence(db: Session) -> None:
-    db.query(models.Presence).filter(models.Presence.updated_at < _presence_cutoff()).delete(synchronize_session=False)
-
-
-def _check_coord(lat: float, lng: float) -> None:
-    if not -90 <= lat <= 90 or not -180 <= lng <= 180:
-        raise HTTPException(400, "Invalid location")
-
-
-@app.get("/presence/heatmap", response_model=schemas.HeatmapOut)
-def presence_heatmap(_: models.User = Depends(current_user), db: Session = Depends(get_db)):
-    """Coordinates only. Names are not included, and points older than the timer are left out."""
-    _prune_presence(db)
-    db.commit()
-    rows = db.query(models.Presence).all()
-    return {
-        "points": [{"lat": row.lat, "lng": row.lng} for row in rows],
-        "refresh_seconds": PRESENCE_REFRESH_SECONDS,
-        "ttl_seconds": PRESENCE_TTL_SECONDS,
-    }
-
-
-@app.get("/presence/me", response_model=schemas.PresenceMine)
-def my_presence(user: models.User = Depends(current_user), db: Session = Depends(get_db)):
-    _prune_presence(db)
-    db.commit()
-    row = db.get(models.Presence, user.id)
-    if not row:
-        return {"sharing": False}
-    return {"sharing": True, "lat": row.lat, "lng": row.lng}
-
-
-@app.post("/presence", response_model=schemas.PresenceMine)
-def update_presence(data: schemas.PresenceUpdate, user: models.User = Depends(current_user), db: Session = Depends(get_db)):
-    _check_coord(data.lat, data.lng)
-    _prune_presence(db)
-    row = db.get(models.Presence, user.id)
-    now = datetime.utcnow()
-    if row:
-        row.lat = data.lat
-        row.lng = data.lng
-        row.updated_at = now
-    else:
-        row = models.Presence(user_id=user.id, lat=data.lat, lng=data.lng, updated_at=now)
-        db.add(row)
-    db.commit()
-    return {"sharing": True, "lat": row.lat, "lng": row.lng}
-
-
-@app.delete("/presence", response_model=schemas.PresenceMine)
-def clear_presence(user: models.User = Depends(current_user), db: Session = Depends(get_db)):
-    db.query(models.Presence).filter_by(user_id=user.id).delete(synchronize_session=False)
-    db.commit()
-    return {"sharing": False}

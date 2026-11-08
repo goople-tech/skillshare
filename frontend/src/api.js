@@ -20,18 +20,14 @@ async function apiRequest(path, options = {}) {
 
 export const api = {
   me: () => apiRequest('/me'),
-  signup: (user) => request('/users', { method: 'POST', body: JSON.stringify(user) }),
-  updateMe: (changes) => request('/me', { method: 'PUT', body: JSON.stringify(changes) }),
+  signup: (user) => apiRequest('/users', { method: 'POST', body: JSON.stringify(user) }),
+  updateMe: (changes) => apiRequest('/me', { method: 'PUT', body: JSON.stringify(changes) }),
   getListings: (category) => request('/listings' + (category ? `?category=${category}` : '')),
   createListing: (listing) => request('/listings', { method: 'POST', body: JSON.stringify(listing) }),
   join: (listingId) => request(`/listings/${listingId}/join`, { method: 'POST' }),
   aiDraft: (text) => request('/ai/draft', { method: 'POST', body: JSON.stringify({ text }) }),
   aiMatch: () => apiRequest('/ai/match', { method: 'POST' }),
   skillMatches: () => apiRequest('/skillshare/matches'),
-  heatmap: () => apiRequest('/presence/heatmap'),
-  myPresence: () => apiRequest('/presence/me'),
-  updatePresence: (point) => apiRequest('/presence', { method: 'POST', body: JSON.stringify(point) }),
-  clearPresence: () => apiRequest('/presence', { method: 'DELETE', keepalive: true }),
 }
 
 export { apiRequest }

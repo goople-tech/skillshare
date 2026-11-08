@@ -1,5 +1,5 @@
 from datetime import datetime
-from sqlalchemy import String, Integer, ForeignKey, DateTime, Text, Table, Column, Float
+from sqlalchemy import String, Integer, ForeignKey, DateTime, Text, Table, Column
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
@@ -25,6 +25,7 @@ class User(Base):
     interests: Mapped[str] = mapped_column(String, default="")      # comma-separated, e.g. "hiking,board games"
     mode: Mapped[str] = mapped_column(String, default="either")     # in_person | online | either
     energy: Mapped[str] = mapped_column(String, default="medium")   # low | medium | high
+    photo: Mapped[str] = mapped_column(Text, default="")  # small data URL, optional
     xp: Mapped[int] = mapped_column(Integer, default=0)
 
     listings: Mapped[list["Listing"]] = relationship(back_populates="owner")
@@ -46,12 +47,3 @@ class Listing(Base):
 
     owner: Mapped[User] = relationship(back_populates="listings")
     members: Mapped[list[User]] = relationship(secondary=listing_members)
-
-
-class Presence(Base):
-    """One current location per user. Each update replaces the row. Old rows are dropped by a timer."""
-    __tablename__ = "presences"
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), primary_key=True)
-    lat: Mapped[float] = mapped_column(Float)
-    lng: Mapped[float] = mapped_column(Float)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
