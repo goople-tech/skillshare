@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { Auth0Provider, useAuth0 } from '@auth0/auth0-react'
 import { setTokenGetter } from './api'
+import { configureApiUrl } from './apiConfig'
 
-export type ClientRuntimeConfig = { auth0Domain: string; auth0ClientId: string; auth0Audience?: string }
+export type ClientRuntimeConfig = { apiUrl: string; auth0Domain: string; auth0ClientId: string; auth0Audience?: string }
 const ClientRuntime = createContext<ClientRuntimeConfig | null>(null)
 
 export function ClientRuntimeProvider({ children }: { children: ReactNode }) {
@@ -12,7 +13,10 @@ export function ClientRuntimeProvider({ children }: { children: ReactNode }) {
     const controller = new AbortController()
     fetch('/api/client-config', { signal: controller.signal, cache: 'no-store' })
       .then(async response => { if (!response.ok) throw new Error('Client configuration is unavailable.'); return await response.json() as ClientRuntimeConfig })
-      .then((data: ClientRuntimeConfig) => { setConfig(data) })
+      .then((data: ClientRuntimeConfig) => {
+        configureApiUrl(data.apiUrl)
+        setConfig(data)
+      })
       .catch(reason => { if (!controller.signal.aborted) setError(reason.message) })
     return () => controller.abort()
   }, [])

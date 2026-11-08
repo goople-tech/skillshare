@@ -24,7 +24,8 @@
 
 - `LiveHeatmap` uses existing FastAPI `/presence/me`, `/presence` and `/presence/heatmap`. `/presence/me` is authoritative on every refresh/reload; never clear presence merely for route unmount/pagehide or write a duplicate persisting client cache. The backend TTL is the only release mechanism besides explicit stop.
 - Show active sharing only after a server-acknowledged POST. Denied geolocation, failed POST and failed DELETE must show an actionable service/permission failure while preserving known last-confirmed state. Do not silently swallow those errors or report success before server confirmation.
-- `apiConfig.ts` and `api.js` use `VITE_API_URL` publicly for browser connections: localhost is solely an explicit local dev fallback. A deployed backend still needs a reachable HTTPS URL plus production CORS; ask backend owner to persist proper PostgreSQL data and CORS origin `https://skillshare.app.space`. Do not use DeepSpace shared presence as secondary coordinate storage.
+- `client-runtime.tsx` obtains the public API URL from `/api/client-config` before rendering authenticated children. `configureApiUrl` overrides Vite's **development-only** `.env` fallback, including `localhost:8010`, which must never be baked into a deployed browser bundle. Presence itself uses the same-origin `/api/campus` proxy. Runtime configuration must be installed before enabling child queries; no client-config response may include credentials.
+- Local development keeps its explicit Vite/localhost fallback. A deployed backend still needs a reachable HTTPS URL plus production CORS; ask the backend owner to persist proper PostgreSQL data and CORS origin `https://skillshare.app.space`. Do not use DeepSpace shared presence as secondary coordinate storage.
 - Lifecycle unit/backend and browser tests in `tests/location-sharing.spec.ts` exercise rejected POST, valid POST, reload restore and explicit stop/delete.
 
 ## Verification

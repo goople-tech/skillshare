@@ -59,7 +59,7 @@ test('390px layout, centered notifications/search, and readable controls work', 
 })
 
 test('profile, offers, connections and exchanges all use the shared data source', async ({ page }) => {
-  await page.route('**/presence*', (route) => route.fulfill({ json: route.request().url().endsWith('/presence/me') ? { sharing: false } : { points: [], refresh_seconds: 30, ttl_seconds: 3600 } }))
+  await page.route('**/presence/**', (route) => route.fulfill({ json: route.request().url().endsWith('/presence/me') ? { sharing: false } : { points: [], refresh_seconds: 30, ttl_seconds: 3600 } }))
   const errors = captureConsoleErrors(page)
   await openPreview(page)
   const people = page.getByRole('region', { name: 'Connections' })
