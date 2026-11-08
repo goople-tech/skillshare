@@ -58,7 +58,6 @@ test('authenticated discovery sends real filters, supports reversible dismissal 
   await dismiss.focus(); await page.keyboard.press('Escape')
   await expect(page.getByRole('button', { name: 'Restore swipe discovery' })).toBeVisible()
   await page.getByRole('button', { name: 'Restore swipe discovery' }).click()
-  await page.getByRole('button', { name: 'Choose the SkillShare deck' }).click()
   await page.getByRole('button', { name: 'Open the SkillShare deck' }).click()
   await expect(page.getByRole('dialog').getByRole('heading', { name: 'API Tutor', exact: true })).toBeVisible()
   await page.keyboard.press('Escape')
