@@ -81,6 +81,12 @@ export default function Landing() {
             </div>
           </section>
 
+          <div className="scroll-sky cloud-decor cloud-decor-login" aria-hidden="true">
+            <img className="cloud cloud-puff cloud-puff-left" src="/clouds/cloud-pastel.png" alt="" />
+            <img className="cloud cloud-puff cloud-puff-mid" src="/clouds/cloud-pastel.png" alt="" />
+            <img className="cloud cloud-puff cloud-puff-right" src="/clouds/cloud-pastel.png" alt="" />
+            <img className="cloud cloud-bank" src="/clouds/cloud-cream.png" alt="" />
+          </div>
 
           <section className="pathways-section section" aria-labelledby="pathways-title">
             <div className="container">
