@@ -108,7 +108,7 @@ export default function Landing() {
 
           <section className="journey-section section" aria-labelledby="pathways-title">
             <div className="container">
-              <div className="journey-heading reveal"><h2 id="pathways-title">Many ways to turn campus<br />into <em>community.</em></h2></div>
+              <div className="journey-heading reveal"><h2 id="pathways-title">Many ways to turn campus <br />into <em>community.</em></h2></div>
               <ol className="timeline">
                 {steps.map((step, index) => (
                   <li className={`timeline-item timeline-item--${index % 2 === 0 ? 'left' : 'right'} reveal`} key={step.number} id={index === 0 ? 'how-it-works' : undefined}>
