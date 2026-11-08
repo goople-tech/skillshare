@@ -25,6 +25,12 @@ Dependencies are in `requirements.txt`; use an isolated virtual environment. Cop
 - `main._add_missing_profile_columns()` adds these columns to databases created before they existed, because `create_all()` never alters tables. Replace with real migrations (e.g. Alembic) before production.
 - Tests: `pip install pytest`, then `python -m pytest tests` from `backend/`. They override `auth.current_email`, so no Auth0 tenant or network is needed.
 
+## Owner-enabled auth/profile diagnosis
+
+- Enable only temporarily during an owner-controlled Vultr incident: `AUTH_REQUEST_DIAGNOSTICS=true`. Then stderr logs have only `auth lookup: current_user: dependency entered`, `profile found|not found`, and `GET /me: route body reached` (when relevant). Disable or leave unset otherwise.
+- These are for distinguishing **a protected `/me` request whose current_user lookup fails** from `/me` route **not reached or a gateway/internal exception**, while not claiming generic `Not Found` is certainly profile-lookup failure. There is none of an encoded user-id, verified email, coordinate, DB URL, request path or bearer/token/private body in these logs.
+- Run real authorized `/presence/me` or `/presence` with the same valid auth token used by the public browser profile; ask the frontend owner to use the profile-permitted request independently. Does not log exactly where is delegated across Cloudflare/Trail/upstream cloudflare; Cloudflare worker route details remain its own logs and provider. `test_auth_diagnostics.py` serves as an isolated local proof with test identity only.
+
 ## Privacy-preserving heatmaps
 
 - Heatmaps return coarse cells (~89m north/south by ~110m east/west) as `areas` plus `active_students`. Only `/presence/me` returns the current user's exact stored coordinates. Never return others' raw rows, even without names: coordinates are personal data. Keep SkillShare matches on `StudentMatchOut` (no email, stored photo, or XP).
@@ -39,3 +45,4 @@ Dependencies are in `requirements.txt`; use an isolated virtual environment. Cop
 - `app/swipe.py` (router included in `main.py`) owns `GET /swipe/{buddy|skill}/deck`, `POST /swipe` and `GET /swipe/matches`, backed by the `swipes` table (`models.Swipe`, one row per swiper/target/deck; swiping again updates it).
 - Decks rank by compatibility only and return `StudentMatchOut` (no email, stored photo, XP or location) plus plain-language `reasons`; ranking points never leave the server. A match is a mutual like in the same deck.
 - `seed_demo.py` adds clearly labelled demo students (`@demo.ubcver.invalid`, cannot sign in); `--like-back EMAIL` makes them like that account so a live demo can show a match; `--remove` deletes them. Tests: `tests/test_swipe.py`.
+++ backend/AGENTS.md

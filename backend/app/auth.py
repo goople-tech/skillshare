@@ -4,6 +4,7 @@ Flow: the frontend logs the user in with Auth0 (passwordless email code), then s
 `Authorization: Bearer <access token>` on every request. We verify the token's
 signature against Auth0's public keys, fetch the verified email, and require a UBC address.
 """
+import logging
 import os
 
 import httpx
@@ -21,6 +22,14 @@ UBC_SUFFIXES = ("@student.ubc.ca", "@alum.ubc.ca", "@students.cs.ubc.ca", "@ubc.
 bearer = HTTPBearer(auto_error=False)
 _jwk_client: PyJWKClient | None = None
 _email_cache: dict[str, str] = {}  # token subject -> verified email
+
+_diagnostic_log = logging.getLogger('ubcver.auth_diagnostic')
+
+
+def diagnose_current_user(event: str) -> None:
+    """Owner-enabled outcome only: never claims, URL, dependency data or payload."""
+    if os.getenv('AUTH_REQUEST_DIAGNOSTICS', '').strip().lower() in ('1', 'true', 'yes'):
+        _diagnostic_log.info('auth lookup: %s', event)
 
 
 def is_ubc_email(email: str) -> bool:
@@ -74,7 +83,9 @@ def current_email(creds: HTTPAuthorizationCredentials | None = Depends(bearer)) 
 
 def current_user(email: str = Depends(current_email), db: Session = Depends(get_db)) -> models.User:
     """The caller's profile. 404 means: logged in, but profile not created yet."""
+    diagnose_current_user('current_user: dependency entered')
     user = db.query(models.User).filter_by(email=email).first()
+    diagnose_current_user(f'current_user: profile {"found" if user else "not found"}')
     if not user:
         raise HTTPException(404, "Profile not found")
     return user

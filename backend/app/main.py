@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from . import models, schemas, gemini
 from .swipe import router as swipe_router
-from .auth import current_email, current_user
+from .auth import current_email, current_user, diagnose_current_user
 from .database import Base, engine, get_db
 from .privacy import aggregate_heat_points
 
@@ -55,6 +55,7 @@ def health():
 # ---------- Users ----------
 @app.get("/me", response_model=schemas.UserOut)
 def me(user: models.User = Depends(current_user)):
+    diagnose_current_user('GET /me: route body reached')
     return user
 
 
