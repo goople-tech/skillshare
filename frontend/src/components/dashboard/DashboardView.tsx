@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useSession } from './useSession'
 import { useWorkspace } from './useWorkspaceData'
 import { WelcomeActions } from './WelcomeActions'
@@ -13,11 +14,11 @@ import { GettingStarted } from './GettingStarted'
 import { ProfileDetailsDialog } from './ProfileDetailsDialog'
 import { TaskDialog } from './RequestOfferDialogs'
 import { ErrorPanel, LoadingRows, WorkspaceNotice, useWorkspaceNotice } from './DashboardFeedback'
-import { SwipeLauncher } from '../swipe/SwipeLauncher'
 import type { Person, ProfileDetails, RequestStatus } from './types'
 
 export function DashboardView() {
   const { user } = useSession()
+  const navigate = useNavigate()
   const workspace = useWorkspace()
   const { snapshot, updateProfile, createSkillOffer, createProjectOffer } = workspace
   const [mode, setMode] = useState<'sample' | 'empty'>('sample')
@@ -71,14 +72,13 @@ export function DashboardView() {
   return <>
     {notice && <WorkspaceNotice message={notice} onClose={clearNotice} />}
     <main className="dashboard-content">
-      <WelcomeActions onFind={findBuddy} onOffer={() => setDialog('skill')} onProjects={() => setDialog('project')} reading={isNewStudent} />
+      <WelcomeActions onFind={findBuddy} onOffer={() => setDialog('skill')} onProjects={() => navigate('/projects')} reading={isNewStudent} />
       {isSample && <div className="preview-mode-bar"><span className={isNewStudent ? 'preview-empty-label' : 'preview-sample-label'}><span className="summary-dot" aria-hidden="true" />{isNewStudent ? 'Getting started' : 'Sample workspace'}</span><select aria-label="Preview mode" value={mode} onChange={(event) => { setMode(event.target.value as 'sample' | 'empty'); void workspace.selectPreviewMode(event.target.value === 'empty'); clearNotice() }}><option value="sample">Example workspace</option><option value="empty">Getting-started view</option></select></div>}
       {!isSample && workspace.error && <ErrorPanel retry={workspace.retry} message={workspace.error} />}
       {isNewStudent ? <>
         <GettingStarted profile={snapshot.profile} onProfile={openProfile} onFind={findBuddy} onSkill={() => setDialog('skill')} />
         <ProfileSummary ref={editorRef} id="profile-summary" name={profileName} initials={initials} profile={snapshot.profile} sourceKind={workspace.kind} onSave={saveProfile} />
       </> : recoverableError ? <ErrorPanel message={workspace.error} retry={async () => { await workspace.retry(); setRecoverableError(false) }} /> : isLoading ? <div className="dashboard-layout"><div className="dashboard-main"><LoadingRows rows={4} /></div><aside className="dashboard-aside"><LoadingRows rows={2} /></aside></div> : <>
-        <SwipeLauncher />
         <div className="dashboard-layout">
           <div className="dashboard-main">
             <RequestsPanel requests={snapshot.requests} people={snapshot.people} isBusy={(id) => workspace.isBusy(`request:${id}`)} onFind={findBuddy} onChange={async (id, next) => { setRecoverableError(false); try { await changeRequest(id, next) } catch { setRecoverableError(true) } }} />
@@ -88,7 +88,7 @@ export function DashboardView() {
           </div>
           <aside className="dashboard-aside"><div id="profile-summary"><ProfileSummary ref={editorRef} name={profileName} initials={initials} profile={snapshot.profile} sourceKind={workspace.kind} onSave={saveProfile} /></div><ActivityPanel activities={snapshot.activities} loading={workspace.isBusy('activity:read')} markAllRead={async () => { notify(await workspace.markAllRead()) }} onViewAll={() => notify('Viewing all activity available in this preview. No extra notifications were queried.')} /><CampusPreview /></aside>
         </div>
-        <div id="projects" className="projects-area" tabIndex={-1}><section className="dashboard-card project-guide"><div><h2>Start with something you want to make</h2><p>Offer your skills to help with a student project.</p></div><button className="button button--outline" onClick={() => setDialog('project')}>Share a project idea <ArrowUpRight size={16} /></button></section></div>
+        <div id="projects" className="projects-area" tabIndex={-1}><section className="dashboard-card project-guide"><div><h2>Start with something you want to make</h2><p>Describe a project and find students who can teach the skills it needs.</p></div><button className="button button--outline" onClick={() => navigate('/projects')}>Find project teammates <ArrowUpRight size={16} /></button></section></div>
       </>}
       {isSample && <p className="dashboard-privacy-note">Preview actions do not create bookings, send notifications, or update accounts.</p>}
     </main>

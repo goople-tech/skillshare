@@ -9,9 +9,12 @@ export type Path =
   | `/account`
   | `/api-status`
   | `/auth`
+  | `/buddies`
   | `/buddies/messages`
+  | `/campus`
   | `/home`
   | `/profile`
+  | `/projects`
   | `/settings`
   | `/skillshare`
   | `/skillshare/messages`
