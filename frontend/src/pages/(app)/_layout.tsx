@@ -26,7 +26,7 @@ import { schemas } from '../../schemas'
 import { ClientRuntimeProvider } from '../../client-runtime'
 import '../../runtime.css'
 
-const WORKSPACE_PAGES = new Set(['/home', '/profile', '/skillshare', '/buddies', '/projects', '/campus'])
+const WORKSPACE_PAGES = new Set(['/home', '/profile', '/skillshare', '/buddies', '/projects', '/campus', '/skillshare/messages', '/buddies/messages'])
 
 export default function AppLayout() {
   const { pathname } = useLocation()

@@ -1,3 +1,11 @@
+import { useNavigate } from 'react-router-dom'
 import { MessagingPage } from '../../../components/messaging/MessagingPage'
+import { AppNavigation } from '../../../components/dashboard/AppNavigation'
 import { SessionProvider } from '../../../components/dashboard/useSession'
-export default function SkillShareMessages() { return <SessionProvider><MessagingPage kind="skill" /></SessionProvider> }
+import '../../../components/dashboard/dashboard.css'
+
+export default function SkillShareMessages() { return <SessionProvider><Shell /></SessionProvider> }
+function Shell() {
+  const navigate = useNavigate()
+  return <><AppNavigation activities={[]} onFind={() => navigate('/skillshare')} onEditProfile={() => navigate('/profile')} /><MessagingPage kind="skill" /></>
+}
