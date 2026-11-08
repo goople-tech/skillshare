@@ -20,5 +20,12 @@
 - Base UI dropdowns use explicit non-modal behavior. Preserve Escape/outside dismissal and focus restoration. Cancel native dialogs through cleanup, not duplicate state-driven event callbacks.
 - Preserve keyboard search, reduced-motion scrolling, semantic regions, visible focus, and accessible notification names that update with read count. Require no horizontal overflow at 390px.
 
+## Location sharing
+
+- `LiveHeatmap` uses existing FastAPI `/presence/me`, `/presence` and `/presence/heatmap`. `/presence/me` is authoritative on every refresh/reload; never clear presence merely for route unmount/pagehide or write a duplicate persisting client cache. The backend TTL is the only release mechanism besides explicit stop.
+- Show active sharing only after a server-acknowledged POST. Denied geolocation, failed POST and failed DELETE must show an actionable service/permission failure while preserving known last-confirmed state. Do not silently swallow those errors or report success before server confirmation.
+- `apiConfig.ts` and `api.js` use `VITE_API_URL` publicly for browser connections: localhost is solely an explicit local dev fallback. A deployed backend still needs a reachable HTTPS URL plus production CORS; ask backend owner to persist proper PostgreSQL data and CORS origin `https://skillshare.app.space`. Do not use DeepSpace shared presence as secondary coordinate storage.
+- Lifecycle unit/backend and browser tests in `tests/location-sharing.spec.ts` exercise rejected POST, valid POST, reload restore and explicit stop/delete.
+
 ## Verification
 Run typecheck/lint/build/unit tests, the scoped Playwright dashboard specs, and real runtime smoke/API checks. Centering and 390px/no-overflow must keep passing after CSS changes.

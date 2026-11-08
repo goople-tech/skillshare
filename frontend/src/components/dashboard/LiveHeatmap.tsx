@@ -1,205 +1,111 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useAuth0 } from '@auth0/auth0-react'
 import L, { type CircleMarker, type Layer } from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { HeatLayer } from 'leaflet.heat'
-import { apiRequest, setTokenGetter } from '../../api'
+import { setTokenGetter } from '../../api'
+import { browserLocation, savePresence, deletePresence, fetchHeatmap, fetchMyPresence, timeToExpire, type MyPresence } from '../../presence'
+import { browserMessage } from './presenceMessages'
 
-type LeafletMarker = CircleMarker
-// Upstream HeatLayer extends Leaflet Layer; its bundled declarations omit that base class.
 type CompatibleHeatLayer = InstanceType<typeof HeatLayer> & Layer
-
 const CAMPUS: [number, number] = [49.2628, -123.2505]
-
-type HeatResponse = { points: { lat: number; lng: number }[]; refresh_seconds: number; ttl_seconds: number }
-type MineResponse = { sharing: boolean; lat?: number | null; lng?: number | null }
-
-function minutes(seconds: number) {
-  const value = Math.max(1, Math.round(seconds / 60))
-  return value === 1 ? '1 minute' : `${value} minutes`
-}
-
 export function LiveHeatmap() {
+  const ref = useRef<HTMLDivElement>(null)
+  const mapRef = useRef<L.Map | null>(null)
+  const marker = useRef<CircleMarker | null>(null)
+  const heat = useRef<CompatibleHeatLayer | null>(null)
+  const mounted = useRef(true)
+  const busy = useRef(false)
+  const [presence, setPresence] = useState<MyPresence>({ sharing: false })
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
+  const [remaining, setRemaining] = useState(30)
+  const [ttl, setTtl] = useState(180)
+  const [count, setCount] = useState(0)
+  const [latest, setLatest] = useState(Date.now())
   const { getAccessTokenSilently } = useAuth0()
-  const mapEl = useRef<HTMLDivElement>(null)
-  const shareRef = useRef(false)
-  const refreshRef = useRef(30)
-  const actions = useRef<{ pull?: () => Promise<void>; push?: () => Promise<void>; removeMarker?: () => void }>({})
-  const [sharing, setSharing] = useState(false)
-  const [seconds, setSeconds] = useState(30)
-  const [status, setStatus] = useState('Loading the live map…')
+  // Your Auth0 adapter owns tokens; request failures keep last-confirmed sharing state visible.
+  useEffect(() => { setTokenGetter(getAccessTokenSilently) }, [getAccessTokenSilently])
 
-  useEffect(() => { setTokenGetter(async () => (await getAccessTokenSilently()) ?? null) }, [getAccessTokenSilently])
-
-  useEffect(() => {
-    if (!mapEl.current) return
-    const map = L.map(mapEl.current).setView(CAMPUS, 15)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-    }).addTo(map)
-    const heat = new HeatLayer([], {
-      radius: 42,
-      blur: 30,
-      maxZoom: 15,
-      minOpacity: 0.45,
-      gradient: { 0.3: '#7eb6ff', 0.55: '#f2a900', 0.8: '#e85d04', 1: '#9b2226' },
-    }) as unknown as CompatibleHeatLayer
-    map.addLayer(heat)
-    map.attributionControl?.setPrefix('')
-
-    let marker: LeafletMarker | null = null
-    let alive = true
-    let left = 30
-
-    const placeMarker = (lat: number, lng: number) => {
-      const first = !marker
-      if (!marker) {
-        const createdMarker = L.circleMarker([lat, lng], {
-          radius: 9,
-          color: '#002145',
-          weight: 2,
-          fillColor: '#f2a900',
-          fillOpacity: 1,
-        }).addTo(map)
-        createdMarker.bindPopup('You are live')
-        marker = createdMarker
+  const showMine = useCallback((profile: MyPresence) => {
+    if (!mounted.current || !mapRef.current) return
+    if (profile.sharing && typeof profile.lat === 'number' && typeof profile.lng === 'number') {
+      if (marker.current) {
+        marker.current.setLatLng([profile.lat, profile.lng])
       } else {
-        marker.setLatLng([lat, lng])
+        const m = L.circleMarker([profile.lat, profile.lng], { radius: 9, color: '#002145', weight: 2, fillColor: '#f2a900', fillOpacity: 1 }).addTo(mapRef.current)
+        m.bindPopup('Your shared location')
+        marker.current = m
       }
-      if (first) map.flyTo([lat, lng], 16)
-    }
-
-    const removeMarker = () => {
-      marker?.remove()
-      marker = null
-    }
-
-    const describe = (count: number, ttlSeconds: number, live: boolean) => {
-      const fade = minutes(ttlSeconds)
-      if (live) return `You are live. Your location updates every ${refreshRef.current} seconds and drops off after about ${fade}.`
-      if (count === 0) return `No one is live right now. A shared location stays on the map for about ${fade}.`
-      return count === 1
-        ? `1 person is live. Spots drop off after about ${fade}.`
-        : `${count} people are live. Spots drop off after about ${fade}.`
-    }
-
-    const pull = async () => {
-      const data = await apiRequest<HeatResponse>('/presence/heatmap')
-      if (!alive) return
-      refreshRef.current = data.refresh_seconds || 30
-      heat.setLatLngs(data.points.map((point) => [point.lat, point.lng, 1]))
-      setStatus(describe(data.points.length, data.ttl_seconds, shareRef.current))
-    }
-
-    const push = () => new Promise<void>((resolve) => {
-      if (!navigator.geolocation) {
-        shareRef.current = false
-        setSharing(false)
-        setStatus('This browser cannot read your location. You can still see people who are sharing.')
-        resolve()
-        return
-      }
-      navigator.geolocation.getCurrentPosition(async (pos) => {
-        try {
-          await apiRequest('/presence', { method: 'POST', body: JSON.stringify({ lat: pos.coords.latitude, lng: pos.coords.longitude }) })
-          if (alive) placeMarker(pos.coords.latitude, pos.coords.longitude)
-        } catch (err) {
-          if (alive) setStatus(err instanceof Error ? err.message : 'Could not update your location.')
-        }
-        resolve()
-      }, () => {
-        shareRef.current = false
-        setSharing(false)
-        removeMarker()
-        apiRequest('/presence', { method: 'DELETE', keepalive: true }).catch(() => {})
-        if (alive) setStatus('Location was blocked. You can still see people who are sharing.')
-        resolve()
-      }, { enableHighAccuracy: true, timeout: 10000, maximumAge: 15000 })
-    })
-
-    actions.current = { pull, push, removeMarker }
-
-    const tick = async () => {
-      try {
-        await pull()
-        if (shareRef.current) await push()
-        if (shareRef.current && alive) await pull()
-      } catch (err) {
-        if (alive) setStatus(err instanceof Error ? err.message : 'The map could not refresh.')
-      }
-      left = refreshRef.current
-      if (alive) setSeconds(left)
-    }
-
-    const boot = async () => {
-      try {
-        const mine = await apiRequest<MineResponse>('/presence/me')
-        if (!alive) return
-        if (mine.sharing) {
-          shareRef.current = true
-          setSharing(true)
-          if (typeof mine.lat === 'number' && typeof mine.lng === 'number') placeMarker(mine.lat, mine.lng)
-        }
-      } catch (err) {
-        if (alive) setStatus(err instanceof Error ? err.message : 'The map could not load.')
-      }
-      await tick()
-    }
-
-    void boot()
-    const id = window.setInterval(() => {
-      left -= 1
-      if (left <= 0) void tick()
-      else if (alive) setSeconds(left)
-    }, 1000)
-    const onHide = () => { if (shareRef.current) void apiRequest('/presence', { method: 'DELETE', keepalive: true }).catch(() => {}) }
-    window.addEventListener('pagehide', onHide)
-    requestAnimationFrame(() => map.invalidateSize())
-
-    return () => {
-      alive = false
-      window.clearInterval(id)
-      window.removeEventListener('pagehide', onHide)
-      if (shareRef.current) void apiRequest('/presence', { method: 'DELETE', keepalive: true }).catch(() => {})
-      map.remove()
-    }
+    } else { marker.current?.remove(); marker.current = null }
   }, [])
+  const pull = useCallback(async () => {
+    try {
+      const [profile, map] = await Promise.all([fetchMyPresence(), fetchHeatmap()])
+      if (!mounted.current) return
+      setPresence(profile); setCount(map.points.length)
+      heat.current?.setLatLngs(map.points.map((point) => [point.lat, point.lng, 1]))
+      showMine(profile)
+      if (profile.sharing) setMessage('Location active. Refreshed from the server.')
+      setRemaining(map.refresh_seconds || 30)
+      setTtl(map.ttl_seconds || 180)
+      setLatest(Date.now())
+    } catch (error) { setMessage(browserMessage(error)) }
+  }, [showMine])
+  useEffect(() => {
+    mounted.current = true
+    if (!ref.current) return
+    const map = L.map(ref.current).setView(CAMPUS, 15)
+    mapRef.current = map
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map)
+    heat.current = new HeatLayer([], { radius: 42, blur: 30, maxZoom: 15, minOpacity: 0.45, gradient: { 0.3: '#7eb6ff', 0.55: '#f2a900', 0.8: '#e85d04', 1: '#9b2226' } }) as unknown as CompatibleHeatLayer
+    map.addLayer(heat.current)
+    map.attributionControl?.setPrefix('')
+    requestAnimationFrame(() => map.invalidateSize())
+    void pull()
+    const timer = setInterval(() => { if (!busy.current) void pull() }, 30000)
+    return () => { mounted.current = false; clearInterval(timer); map.remove(); mapRef.current = null }
+  }, [pull])
+  useEffect(() => {
+    const timer = setInterval(() => setRemaining(current => current > 0 ? current - 1 : 30), 1000)
+    return () => clearInterval(timer)
+  }, []);
 
   const start = async () => {
-    shareRef.current = true
-    setSharing(true)
-    setStatus('Asking for your location…')
-    await actions.current.push?.()
-    try { await actions.current.pull?.() } catch (err) { setStatus(err instanceof Error ? err.message : 'The map could not refresh.') }
-    setSeconds(refreshRef.current)
-  }
-
-  const stop = async () => {
-    shareRef.current = false
-    setSharing(false)
-    actions.current.removeMarker?.()
+    if (busy.current) return
+    busy.current = true; setLoading(true); setMessage('Allow location access, then we’ll save your choice.')
     try {
-      await apiRequest('/presence', { method: 'DELETE' })
-      await actions.current.pull?.()
-    } catch (err) {
-      setStatus(err instanceof Error ? err.message : 'Could not stop sharing.')
-    }
+      const point = await browserLocation()
+      const saved = await savePresence(point)
+      if (!mounted.current) return
+      setPresence(saved)
+      showMine(saved)
+      setMessage('Location active. It stays on through refresh.')
+      await pull()
+    } catch (error) { if (mounted.current) setMessage(browserMessage(error)) }
+    finally { busy.current = false; setLoading(false) }
   }
-
-  return (
-    <>
-      <p>People who choose to share show up as heat, without names. The map refreshes on a timer, then the spot disappears.</p>
-      <div ref={mapEl} className="live-campus-map" />
-      <div className="live-campus-actions">
-        {sharing ? (
-          <button type="button" className="button button--outline" onClick={() => void stop()}>Stop sharing</button>
-        ) : (
-          <button type="button" className="button button--primary" onClick={() => void start()}>Share my location</button>
-        )}
-        <span>Updates in {seconds}s</span>
-      </div>
-      <p className="live-campus-status" role="status">{status}</p>
-    </>
-  )
+  const stop = async () => {
+    if (busy.current) return
+    busy.current = true; setLoading(true); setMessage('Stopping sharing…')
+    try {
+      const result = await deletePresence()
+      if (!mounted.current) return
+      setPresence(result)
+      marker.current?.remove()
+      setMessage('Location sharing stopped.')
+      await pull()
+    } catch (error) { if (mounted.current) setMessage(browserMessage(error)) }
+    finally { busy.current = false; setLoading(false) }
+  }
+  const seconds = remaining ? Math.max(0, remaining - Math.floor((Date.now() - latest) / 1000)) : 30
+  return <>
+    <p>You’re in control. Share a campus spot without your name for about {timeToExpire(ttl)}.</p>
+    <div ref={ref} className="live-campus-map" role="img" aria-label="Campus map with anonymous location activity" />
+    <div className="live-campus-actions">
+      {presence.sharing ? <button type="button" className="button button--outline" disabled={loading} onClick={() => void stop()}>Stop sharing</button> : <button type="button" className="button button--primary" disabled={loading} onClick={() => void start()}>{loading ? 'Allow access…' : 'Share my location'}</button>}
+      <span>Updates in {seconds}s</span>{count > 0 && <span>{count} active</span>}
+    </div>
+    <p className="live-campus-status" role="status">{message || status}</p>
+  </>
 }
