@@ -1,5 +1,5 @@
 import { Check, ChevronRight, Laptop, MapPin, Pencil } from 'lucide-react'
-import { forwardRef, useImperativeHandle, useState, type FormEvent } from 'react'
+import { forwardRef, useEffect, useImperativeHandle, useState, type FormEvent } from 'react'
 import { BusyLabel } from './DashboardFeedback'
 import type { ProfileDetails } from './types'
 
@@ -34,4 +34,11 @@ export const ProfileSummary = forwardRef<ProfileEditorHandle, Props>(function Pr
   </section>
 })
 function ProfileTags({ label, items, sand = false }: { label: string; items: string[]; sand?: boolean }) { return <div className="profile-tags"><span>{label}</span><div>{items.length ? items.map((item) => <span key={item} className={`workspace-tag ${sand ? 'workspace-tag--sand' : ''}`}>{item}</span>) : <span className="profile-add">Not added yet</span>}</div></div> }
-function ProfileField({ id, name, label, value, onChange }: { id: string; name: string; label: string; value: string[]; onChange: (value: string[]) => void }) { return <><label htmlFor={`profile-${name}${id}`}>{label}</label><input id={`profile-${name}${id}`} value={value.join(', ')} onChange={(event) => onChange(event.target.value.split(',').map((value) => value.trim()).filter(Boolean))} placeholder="Separate items with commas" /></> }
+const parseList = (text: string) => text.split(',').map((item) => item.trim()).filter(Boolean)
+// The box keeps exactly what was typed. Re-joining the parsed list on every keystroke would delete a just-typed comma
+// ("Cats," becomes "Cats"), so the list is only parsed for the parent, and the text is reset only when the list changes from outside.
+function ProfileField({ id, name, label, value, onChange }: { id: string; name: string; label: string; value: string[]; onChange: (value: string[]) => void }) {
+  const [text, setText] = useState(value.join(', '))
+  useEffect(() => { if (parseList(text).join('\u0000') !== value.join('\u0000')) setText(value.join(', ')) }, [value])
+  return <><label htmlFor={`profile-${name}${id}`}>{label}</label><input id={`profile-${name}${id}`} value={text} onChange={(event) => { setText(event.target.value); onChange(parseList(event.target.value)) }} placeholder="Separate items with commas" /></>
+}

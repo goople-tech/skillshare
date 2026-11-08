@@ -47,7 +47,7 @@ export const discoveryQuery = (filters: Filters): string => {
   if (filters.offering) params.set('offering', filters.offering)
   if (filters.meeting) params.set('meeting', filters.meeting)
   if (filters.minimumRating) params.set('minimum_rating', filters.minimumRating)
-  params.set('limit', '24')
+  params.set('limit', '10')
   return params.toString()
 }
 

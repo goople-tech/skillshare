@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useSession } from './useSession'
-import { useProfileName } from './useProfileName'
+import { useRealProfile } from './useRealProfile'
 import { useWorkspace } from './useWorkspaceData'
 import { WelcomeActions } from './WelcomeActions'
 import { RequestsPanel } from './RequestsPanel'
@@ -28,7 +28,11 @@ export function DashboardView() {
   const [profilePerson, setProfilePerson] = useState<Person | null>(null)
   const [taskError, setTaskError] = useState('')
   const editorRef = useRef<ProfileEditorHandle>(null)
-  const profileName = useProfileName(user?.name ?? user?.email?.split('@')[0] ?? 'Student')
+  const realProfile = useRealProfile(user?.name ?? user?.email?.split('@')[0] ?? 'Student')
+  const profileName = realProfile.name
+  // The profile card shows the student's real saved profile once it loads; everything else on the dashboard is still sample data.
+  const cardProfile = realProfile.profile ?? snapshot.profile
+  const cardSource = realProfile.profile ? 'api' : workspace.kind
   const initials = profileName.split(/\s+/).map((part) => part[0]).join('').slice(0, 2).toUpperCase()
   const isNewStudent = mode === 'empty'
   const isSample = workspace.kind === 'preview'
@@ -67,9 +71,10 @@ export function DashboardView() {
     document.getElementById('profile-summary')?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
   }
   const saveProfile = async (profile: ProfileDetails) => {
-    await updateProfile(profile)
+    if (realProfile.profile) await realProfile.save(profile)
+    else await updateProfile(profile)
     clearNotice()
-    notify(workspace.kind === 'preview' ? 'Profile updated in this preview only. No server update was performed.' : 'Profile saved.')
+    notify(cardSource === 'preview' ? 'Profile updated in this preview only. No server update was performed.' : 'Profile saved.')
   }
   const handleSaveOffer = async (details: { title?: string; help?: string }) => {
     setTaskError('')
@@ -93,10 +98,10 @@ export function DashboardView() {
       {isSample && <div className="preview-mode-bar"><span className={isNewStudent ? 'preview-empty-label' : 'preview-sample-label'}><span className="summary-dot" aria-hidden="true" />{isNewStudent ? 'Getting started' : 'Sample workspace'}</span><select aria-label="Preview mode" value={mode} onChange={(event) => { setMode(event.target.value as 'sample' | 'empty'); void workspace.selectPreviewMode(event.target.value === 'empty'); clearNotice() }}><option value="sample">Example workspace</option><option value="empty">Getting-started view</option></select></div>}
       {!isSample && workspace.error && <ErrorPanel retry={workspace.retry} message={workspace.error} />}
       {isNewStudent ? <>
-        <GettingStarted profile={snapshot.profile} onProfile={openProfile} onFind={findBuddy} onSkill={navigateSkill} />
-        <ProfileSummary ref={editorRef} id="profile-summary" name={profileName} initials={initials} profile={snapshot.profile} sourceKind={workspace.kind} onSave={saveProfile} />
+        <GettingStarted profile={cardProfile} onProfile={openProfile} onFind={findBuddy} onSkill={navigateSkill} />
+        <ProfileSummary ref={editorRef} id="profile-summary" name={profileName} initials={initials} profile={cardProfile} sourceKind={cardSource} onSave={saveProfile} />
       </> : recoverableError ? <ErrorPanel message={workspace.error} retry={async () => { await workspace.retry(); setRecoverableError(false) }} /> : isLoading ? <div className="dashboard-layout"><div className="dashboard-main"><LoadingRows rows={4} /></div><aside className="dashboard-aside"><LoadingRows rows={2} /></aside></div> : <>
-        {showTutorial && <GettingStarted profile={snapshot.profile} onProfile={openProfile} onFind={findBuddy} onSkill={navigateSkill} onDismiss={() => setShowTutorial(false)} />}
+        {showTutorial && <GettingStarted profile={cardProfile} onProfile={openProfile} onFind={findBuddy} onSkill={navigateSkill} onDismiss={() => setShowTutorial(false)} />}
         <div className="dashboard-layout">
           <div className="dashboard-main">
             <RequestsPanel requests={snapshot.requests} people={snapshot.people} isBusy={(id) => workspace.isBusy(`request:${id}`)} onFind={findBuddy} onChange={async (id, next) => { setRecoverableError(false); try { await changeRequest(id, next) } catch { setRecoverableError(true) } }} />
@@ -104,7 +109,7 @@ export function DashboardView() {
             {snapshot.skillOffers.length > 0 && <section className="dashboard-card saved-offers"><h2>Your preview offers</h2><div className="preview-offers">{snapshot.skillOffers.map((offer, index) => <div className="preview-offer" key={`${offer.teach}-${offer.learn}-${index}`}><strong>{offer.teach} ↔ {offer.learn}</strong><span>{isSample ? 'Local only' : 'Saved'}</span></div>)}</div></section>}
             <PeopleMatches people={snapshot.people} matches={snapshot.matches} busyActions={snapshot.people.filter((person) => workspace.isBusy(`person:${person.id}`)).map((person) => `person:${person.id}`).concat(snapshot.matches.filter((match) => workspace.isBusy(`exchange:${match.id}`)).map((match) => `exchange:${match.id}`))} onViewProfile={setProfilePerson} onConnect={async (id) => { setRecoverableError(false); notify(await workspace.connect(id)) }} onExchange={async (id) => { setRecoverableError(false); notify(await workspace.sendExchange(id)) }} />
           </div>
-          <aside className="dashboard-aside"><div id="profile-summary"><ProfileSummary ref={editorRef} name={profileName} initials={initials} profile={snapshot.profile} sourceKind={workspace.kind} onSave={saveProfile} /></div><ActivityPanel activities={snapshot.activities} loading={workspace.isBusy('activity:read')} markAllRead={async () => { notify(await workspace.markAllRead()) }} onViewAll={() => notify('Viewing all activity available in this preview. No extra notifications were queried.')} /><CampusPreview /></aside>
+          <aside className="dashboard-aside"><div id="profile-summary"><ProfileSummary ref={editorRef} name={profileName} initials={initials} profile={cardProfile} sourceKind={cardSource} onSave={saveProfile} /></div><ActivityPanel activities={snapshot.activities} loading={workspace.isBusy('activity:read')} markAllRead={async () => { notify(await workspace.markAllRead()) }} onViewAll={() => notify('Viewing all activity available in this preview. No extra notifications were queried.')} /><CampusPreview /></aside>
         </div>
         <div id="projects" className="projects-area" tabIndex={-1}><section className="dashboard-card project-guide"><div><h2>Start with something you want to make</h2><p>Describe a project and find students who can teach the skills it needs.</p></div><button className="button button--outline" onClick={() => navigate('/projects')}>Find project teammates <ArrowUpRight size={16} /></button></section></div>
       </>}
