@@ -1,8 +1,8 @@
-# UBC Ver.
+# Flockwork
 
-A warm, student-centered community platform built for HackCamp 2026. UBC Ver. helps students find study partners and friends, exchange skills, and discover project collaborators.
+A warm, student-centered community platform built for HackCamp 2026. Flockwork helps students find study partners and friends, exchange skills, and discover project collaborators.
 
-> UBC Ver. is an independent student project and is not affiliated with the University of British Columbia.
+> Flockwork is an independent student project and is not affiliated with the University of British Columbia.
 
 ## Current scope
 

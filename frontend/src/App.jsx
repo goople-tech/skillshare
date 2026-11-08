@@ -142,7 +142,7 @@ function ProfileForm({ initial, onDone, onCancel }) {
       <div className="pf-card">
         <aside className="pf-aside">
           <CampusMark className="pf-mark" />
-          <span className="eyebrow">{isEdit ? 'YOUR PROFILE' : 'WELCOME TO UBC VER.'}</span>
+          <span className="eyebrow">{isEdit ? 'YOUR PROFILE' : 'WELCOME TO FLOCKWORK'}</span>
           <h1>{isEdit ? 'Edit your profile' : 'Tell us a bit about you'}</h1>
           <p className="pf-lead">
             {isEdit ? 'Keep your details current so the people you match with get the right picture.'

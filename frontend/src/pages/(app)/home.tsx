@@ -15,12 +15,12 @@ function HomeContent() {
 function DashboardContent({ isLoaded, isSignedIn }: { isLoaded: boolean; isSignedIn: boolean }) {
   const { snapshot, setEditProfileOpen } = useWorkspace()
   return <>
-    <title>Your Dashboard — UBC Ver.</title>
+    <title>Your Dashboard — Flockwork</title>
     <AppNavigation activities={snapshot.activities} onFind={() => document.getElementById('skills-matches')?.scrollIntoView({ behavior: 'smooth' })} onEditProfile={() => setEditProfileOpen(true)} />
     {isLoaded && (isSignedIn ? <DashboardView /> : <WelcomePreview />)}
   </>
 }
 function WelcomePreview() {
   const { signIn } = useSession()
-  return <div className="preview-signin"><h1>A student workspace, around your pace.</h1><p>Sign in to see your private UBC Ver. workspace. Your workspace will connect to live community data after the shared service is integrated.</p><Button onClick={() => void signIn()}>Sign in to your workspace</Button><Link to="/">Explore the public page</Link></div>
+  return <div className="preview-signin"><h1>A student workspace, around your pace.</h1><p>Sign in to see your private Flockwork workspace. Your workspace will connect to live community data after the shared service is integrated.</p><Button onClick={() => void signIn()}>Sign in to your workspace</Button><Link to="/">Explore the public page</Link></div>
 }

@@ -69,7 +69,7 @@ function ProfileGate() {
 
 export default function ProfilePage() {
   return (
-    <AuthShell title="Your profile · UBC Ver.">
+    <AuthShell title="Your profile · Flockwork">
       <ProfileGate />
     </AuthShell>
   )
