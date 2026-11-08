@@ -14,9 +14,9 @@ const kindFromHash = (hash: string): SwipeKind | null => hash === '#skillshare' 
 const messagesPath = (kind: SwipeKind, personId: string) => `/${kind === 'skill' ? 'skillshare' : 'buddies'}/messages?participant=${personId}`
 
 /**
- * Speed Matching entry point. On the dashboard (`#meet`) it shows both phones beside filters and
- * match tiles for the selected deck; the nav's Buddies tab sets `#buddies`, which puts the Buddies
- * phone in front. `/skillshare` reuses it with `skillOnly` (single phone, its own discovery grid).
+ * Speed Matching entry point. On the standalone /buddies page it shows both phones (Buddies in
+ * front by default) beside filters and match tiles for the selected deck. `/skillshare` reuses it
+ * with `skillOnly` (single phone, its own discovery grid).
  * Uses the live FastAPI endpoints; a clearly labelled sample deck is offered only if the service
  * can't be reached. Messaging goes through the existing conversations pages.
  */
@@ -47,13 +47,12 @@ export function SwipeLauncher({ skillOnly = false, cardProps, onDismiss }: { ski
     return () => section?.removeEventListener('keydown', listener)
   }, [onDismiss])
 
-  // The nav's Buddies tab (and links like /home#buddies) select a deck and bring the section into view.
+  // On /buddies the hash (#buddies / #skillshare) records which phone is in front, so links and reloads keep it.
   useEffect(() => {
     if (skillOnly) return
     const kind = kindFromHash(location.hash)
     if (!kind) return
     setSelected(kind)
-    meetRef.current?.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
   }, [location.hash, skillOnly])
 
   const select = useCallback((kind: SwipeKind) => {

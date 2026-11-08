@@ -9,6 +9,7 @@ export type Path =
   | `/account`
   | `/api-status`
   | `/auth`
+  | `/buddies`
   | `/buddies/messages`
   | `/home`
   | `/profile`
