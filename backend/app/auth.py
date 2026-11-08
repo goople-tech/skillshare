@@ -32,6 +32,10 @@ def diagnose_current_user(event: str) -> None:
         _diagnostic_log.info('auth lookup: %s', event)
 
 
+if os.getenv('AUTH_REQUEST_DIAGNOSTICS', '').strip().lower() in ('1', 'true', 'yes'):
+    _diagnostic_log.warning('AUTH_DIAGNOSTICS_ENABLED')
+
+
 def is_ubc_email(email: str) -> bool:
     return email.lower().endswith(UBC_SUFFIXES)
 
@@ -48,10 +52,12 @@ def _verify(token: str) -> dict:
     domain, audience = _config()
     if _jwk_client is None:
         _jwk_client = PyJWKClient(f"https://{domain}/.well-known/jwks.json")
+    diagnose_current_user('token verification entered')
     try:
         key = _jwk_client.get_signing_key_from_jwt(token).key
         return jwt.decode(token, key, algorithms=["RS256"], audience=audience, issuer=f"https://{domain}/")
-    except jwt.PyJWTError:
+    except jwt.PyJWTError as err:
+        diagnose_current_user(f'token verification failed: {type(err).__name__}')
         raise HTTPException(401, "Invalid or expired token")
 
 
