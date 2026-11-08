@@ -1,4 +1,4 @@
-// FastAPI requests share transport, auth-token ownership, and honest failures.
+// Real Auth0 token-authenticated FastAPI calls live here.
 import { readApiUrl, API_UNSET_ERROR } from './apiConfig'
 
 let getToken = async () => null
@@ -16,12 +16,9 @@ export async function apiRequest(path, options = {}) {
       keepalive: Boolean(keepalive),
     })
     const data = await response.json().catch(() => {
-      throw new Error(response.status === 502 || response.status === 504 ? 'The campus service is temporarily unavailable. Try again soon.' : 'The campus service returned an invalid response.')
+      throw new Error('The campus service returned an invalid response.')
     })
     if (!response.ok) {
-      if (response.status === 401 || response.status === 403 || response.status === 404) {
-        throw new Error(response.status === 404 ? 'Profile not found' : 'Please sign in and complete your profile before sharing.')
-      }
       throw new Error(typeof data.detail === 'string' ? data.detail : `Request failed (${response.status}).`)
     }
     return data
