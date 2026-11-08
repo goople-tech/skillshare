@@ -47,6 +47,7 @@ export function LiveHeatmap() {
       heat.current?.setLatLngs(map.points.map((point) => [point.lat, point.lng, 1]))
       showMine(profile)
       if (profile.sharing) setMessage('Location active. Refreshed from the server.')
+      else setMessage('Campus activity without your name. Choose to share when you’re ready.')
       setRemaining(map.refresh_seconds || 30)
       setTtl(map.ttl_seconds || 180)
       setLatest(Date.now())

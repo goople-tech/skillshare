@@ -19,7 +19,8 @@ export async function apiRequest(path, options = {}) {
       throw new Error('The campus service returned an invalid response.')
     })
     if (!response.ok) {
-      throw new Error(typeof data.detail === 'string' ? data.detail : `Request failed (${response.status}).`)
+      if (response.status === 404) throw new Error('Profile not found')
+      throw new Error(typeof data.detail === 'string' ? data.detail : `The campus service could not complete that request (${response.status}).`)
     }
     return data
   } catch (error) {
