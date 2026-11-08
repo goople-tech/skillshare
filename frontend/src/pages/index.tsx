@@ -12,6 +12,7 @@ import { SkillPreview } from '../components/landing/SkillPreview'
 import { CampusMap } from '../components/landing/CampusMap'
 import { SignupDialog } from '../components/landing/SignupDialog'
 import { CampusMark } from '../components/landing/CampusMark'
+import '../decor.css'
 
 const navigation = [
   { label: 'Buddies', href: '#buddies' },
@@ -44,6 +45,12 @@ export default function Landing() {
       <Seo {...seo} path="/" />
       <a className="skip-link" href="#main-content">Skip to main content</a>
       <div className="site" id="top">
+        <div className="hero-sky" aria-hidden="true">
+          <img className="cloud cloud-puff cloud-puff-left" src="/clouds/cloud-pastel.png" alt="" />
+          <img className="cloud cloud-puff cloud-puff-mid" src="/clouds/cloud-pastel.png" alt="" />
+          <img className="cloud cloud-puff cloud-puff-right" src="/clouds/cloud-pastel.png" alt="" />
+          <img className="cloud cloud-bank" src="/clouds/cloud-cream.png" alt="" />
+        </div>
         <header className="site-header">
           <div className="header-inner container">
             <Wordmark />
