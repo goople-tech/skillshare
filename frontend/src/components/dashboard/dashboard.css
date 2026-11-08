@@ -382,3 +382,57 @@
 .dashboard-dialog .dialog-close { min-width: 38px; min-height: 38px; font-size: 24px; }
 .dialog-form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .form-error { color: #8D2F28; font-size: 14px; line-height: 1.6; }
+
+/* Lighter, friendlier chrome following the landing pill controls. */
+.dashboard-content { padding-top: 34px; }
+.dashboard-welcome { margin-bottom: 24px; align-items: center; }
+.dashboard-welcome h1 { letter-spacing: -.028em; }
+.dashboard-welcome p { margin-top: 8px; }
+.workspace-nav { padding: 4px; background: #EAF0F1; border-radius: 999px; }
+.workspace-nav-item { border-radius: 999px; padding-inline: 14px; }
+.workspace-header { border-bottom-color: #D8DFDF80; background: #F8F5EEF2; }
+.profile-menu-trigger { border-radius: 999px; }
+.search-trigger { border-radius: 999px; min-width: 195px; padding-block: 9px; }
+.preview-mode-bar { gap: 10px 15px; padding: 0 0 12px; border-bottom: 0; margin-bottom: 11px; }
+.preview-sample-label, .preview-empty-label { font-size: 12px; line-height: 1.5; gap: 6px; }
+.preview-mode-bar select { min-height: 34px; border-radius: 999px; padding: 5px 11px; }
+.dashboard-card { border-radius: 14px; border-color: #D8DFDF88; box-shadow: 0 3px 14px #173B5E03; }
+.requests-card .requests-list { gap: 4px; }
+.request-card { border-bottom-color: #D8DFDF88; }
+.request-actions { gap: 8px; }
+.welcome-actions .button, .request-actions .button, .match-actions .button, .session-actions .button {
+  border-radius: 999px;
+  min-height: 37px;
+}
+.welcome-actions .button { padding-inline: 16px; }
+.button--quiet:hover, .button--text:hover { background: #173B5E08; }
+.matches-grid { gap: 20px; }
+.matches-card { padding: 22px; }
+.match-list { gap: 0; }
+.person-match { gap: 12px; padding-block: 15px; }
+.person-match:first-child { padding-top: 0; }
+.person-match:last-child { padding-bottom: 0; }
+.match-actions { flex-shrink: 0; }
+.match-actions .button { font-size: 12px; padding-inline: 12px; }
+.dashboard-aside .activity-card { padding-block: 21px; }
+.activity-item { gap: 10px; }
+.campus-compact .campus-note { margin-top: 10px; }
+.project-guide { margin-top: 21px; padding: 22px 25px; background: var(--ivory); border-color: transparent; }
+.dashboard-privacy-note { font-size: 12px; color: var(--ink-muted); }
+.saved-offers { padding-block: 19px; }
+.preview-offers { margin-top: 10px; }
+@media (max-width: 870px) {
+  .workspace-nav-item { padding-inline: 13px; }
+}
+@media (max-width: 680px) {
+  .dashboard-content { padding-top: 27px; }
+  .dashboard-welcome { margin-bottom: 19px; }
+  .preview-mode-bar { flex-direction: row; align-items: center; }
+  .preview-mode-bar select { width: auto; }
+  .preview-sample-label, .preview-empty-label { max-width: 150px; }
+  .welcome-actions .button--large { min-width: 140px; }
+  .person-match .match-actions { grid-column: 1 / -1; margin-left: 49px; }
+  .match-actions .button { flex: 0 1 auto; }
+  .match-actions { justify-content: flex-start; }
+  .app-navigation-tools { gap: 4px; }
+}
