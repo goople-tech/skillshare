@@ -48,3 +48,8 @@
   .projects-layout { grid-template-columns: 1fr; }
   .projects-header h1, .campus-page h1 { font-size: 24px; }
 }
+
+.projects-browse { display: grid; gap: 12px; margin-top: 10px; padding-top: 18px; border-top: 1px solid var(--border); }
+.projects-browse h2 { margin: 0; font-size: 22px; }
+.projects-browse-title { font-size: 17px; }
+.projects-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; font-size: 12px; }

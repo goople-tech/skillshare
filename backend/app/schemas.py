@@ -98,6 +98,23 @@ class ProjectSkillTeammates(BaseModel):
     students: list[StudentMatchOut]
 
 
+class ProjectIn(BaseModel):
+    """Create a project. Skills are trimmed and de-duplicated server-side (max 6)."""
+    title: str = Field(min_length=1, max_length=80)
+    pitch: str = Field(default="", max_length=280)
+    skills_needed: list[str] = Field(min_length=1, max_length=12)
+
+
+class ProjectOut(BaseModel):
+    id: int
+    title: str
+    pitch: str
+    skills_needed: list[str]
+    owner: StudentMatchOut
+    is_mine: bool
+    created_at: datetime
+
+
 class SkillMatchOut(BaseModel):
     user: StudentMatchOut
     they_teach_me: list[str]
