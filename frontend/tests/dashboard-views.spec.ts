@@ -14,6 +14,14 @@ const expectCentered = async (page: import('@playwright/test').Page) => {
   expect(Math.abs(geometry.top - geometry.viewport[1] / 2)).toBeLessThan(1.1)
 }
 
+test('the auth route supplies public runtime configuration before entering the dashboard', async ({ page }) => {
+  await page.route('**/presence/**', (route) => route.fulfill({ json: route.request().url().endsWith('/presence/me') ? { sharing: false } : { points: [], refresh_seconds: 30, ttl_seconds: 180 } }))
+  await page.goto('/auth')
+  await page.waitForURL('/home')
+  await expect(page.getByRole('heading', { name: /Requests for you/ })).toBeVisible()
+  await expect(page.getByText('ClientRuntimeProvider missing')).toHaveCount(0)
+})
+
 test('request decisions, centered dialogs, responses and keyboard dismissal work', async ({ page }) => {
   await openPreview(page)
   await expect(page.getByRole('heading', { name: /Good (morning|afternoon|evening), Dashboard/ })).toBeVisible()

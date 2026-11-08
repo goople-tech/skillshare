@@ -2,11 +2,14 @@
  * The landing page's "Log In / Sign Up" buttons link here. */
 import { Navigate } from 'react-router-dom'
 import { AuthShell } from '../components/AuthShell'
+import { ClientRuntimeProvider } from '../client-runtime'
 
 export default function AuthPage() {
   return (
-    <AuthShell title="Log in · UBC Ver.">
-      <Navigate to="/home" replace />
-    </AuthShell>
+    <ClientRuntimeProvider>
+      <AuthShell title="Log in · UBC Ver.">
+        <Navigate to="/home" replace />
+      </AuthShell>
+    </ClientRuntimeProvider>
   )
 }
