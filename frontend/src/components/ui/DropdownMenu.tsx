@@ -4,7 +4,7 @@ import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
-const DropdownMenu = MenuPrimitive.Root
+const DropdownMenu = (props: MenuPrimitive.Root.Props) => <MenuPrimitive.Root modal={false} {...props} />
 const DropdownMenuPortal = MenuPrimitive.Portal
 const DropdownMenuGroup = MenuPrimitive.Group
 const DropdownMenuRadioGroup = MenuPrimitive.RadioGroup
