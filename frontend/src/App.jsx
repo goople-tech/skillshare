@@ -3,6 +3,7 @@ import { useAuth0 } from '@auth0/auth0-react'
 import { api, setTokenGetter } from './api'
 import { CampusMark } from './components/landing/CampusMark'
 import './profile.css'
+import Skillshare from './Skillshare'
 
 const CATEGORIES = ['', 'study', 'skill', 'ride']
 const emptyListing = { category: 'study', title: '', description: '', tag: '', location: '', time: '', capacity: 4 }
@@ -60,6 +61,7 @@ export default function App() {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <ProfileSummary user={user} />
       <Listings user={user} setUser={setUser} setError={setError} />
+      <Skillshare user={user} />
     </div>
   )
 }

@@ -25,4 +25,5 @@ export const api = {
   join: (listingId) => request(`/listings/${listingId}/join`, { method: 'POST' }),
   aiDraft: (text) => request('/ai/draft', { method: 'POST', body: JSON.stringify({ text }) }),
   aiMatch: () => request('/ai/match', { method: 'POST' }),
+  skillMatches: () => request('/skillshare/matches'),
 }
