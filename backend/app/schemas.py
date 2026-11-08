@@ -92,6 +92,12 @@ class SkillRatingOut(BaseModel):
     completed_reviews: int = Field(ge=0)
 
 
+class ProjectSkillTeammates(BaseModel):
+    """Students whose public skills_teach includes one skill a project needs."""
+    skill: str
+    students: list[StudentMatchOut]
+
+
 class SkillMatchOut(BaseModel):
     user: StudentMatchOut
     they_teach_me: list[str]

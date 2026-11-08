@@ -38,6 +38,8 @@ export function AppNavigation({ activities, onFind, onEditProfile }: { activitie
     if (id === 'skills-matches') return navigate('/skillshare')
     if (id === 'buddies' && location.pathname === '/buddies') { document.getElementById('swipe-decks')?.focus(); return }
     if (id === 'buddies') return navigate('/buddies')
+    if (id === 'projects') return navigate('/projects')
+    if (id === 'campus-activity') return navigate('/campus')
     if (location.pathname !== '/home') return navigate(`/home#${id}`)
     const section = document.getElementById(id)
     if (!section) return
@@ -48,7 +50,7 @@ export function AppNavigation({ activities, onFind, onEditProfile }: { activitie
 
   return <>
     <header data-testid="app-navigation" className="workspace-header"><div className="workspace-header-inner"><Wordmark href="/" />
-      <nav aria-label="Dashboard navigation" className="workspace-nav">{links.map((item) => { const current = item.id === 'skills-matches' ? location.pathname === '/skillshare' : item.id === 'buddies' ? location.pathname === '/buddies' : (location.hash === `#${item.id}` || (!location.hash && item.id === 'dashboard-top' && location.pathname === '/home')); return <button key={item.id} className={`workspace-nav-item ${current ? 'workspace-nav-item--active' : ''}`} aria-current={current ? 'location' : undefined} onClick={() => navigateSection(item.id)}><item.icon size={16} />{item.label}</button> })}</nav>
+      <nav aria-label="Dashboard navigation" className="workspace-nav">{links.map((item) => { const current = item.id === 'skills-matches' ? location.pathname === '/skillshare' : item.id === 'buddies' ? location.pathname === '/buddies' : item.id === 'projects' ? location.pathname === '/projects' : item.id === 'campus-activity' ? location.pathname === '/campus' : (location.hash === `#${item.id}` || (!location.hash && item.id === 'dashboard-top' && location.pathname === '/home')); return <button key={item.id} className={`workspace-nav-item ${current ? 'workspace-nav-item--active' : ''}`} aria-current={current ? 'location' : undefined} onClick={() => navigateSection(item.id)}><item.icon size={16} />{item.label}</button> })}</nav>
       <button className="search-trigger" data-testid="workspace-search-trigger" onClick={() => setSearchOpen(true)}><Search size={16} /><span>Find people, courses, skills…</span><kbd>⌘ K</kbd></button>
       <button className="workspace-icon-btn notification-btn" onClick={() => setNotificationOpen(!notificationOpen)} aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={notificationOpen} aria-controls="notification-panel"><Bell size={19} />{unread > 0 && <span className="notification-count" aria-hidden="true">{unread}</span>}</button>
       {isLoaded && !isSignedIn && <button data-testid="nav-sign-in-button" className="button button--primary dashboard-signin" onClick={() => void signIn()}>Sign In<Check size={15} /> </button>}

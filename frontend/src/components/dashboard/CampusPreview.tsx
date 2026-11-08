@@ -1,4 +1,5 @@
-import { MapPin } from 'lucide-react'
+import { ArrowUpRight, MapPin } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { LiveHeatmap } from './LiveHeatmap'
 
 export function CampusPreview() {
@@ -11,6 +12,7 @@ export function CampusPreview() {
         <MapPin size={18} />
       </div>
       <LiveHeatmap />
+      <Link className="button button--text" to="/campus">Open full campus map <ArrowUpRight size={14} /></Link>
     </section>
   )
 }

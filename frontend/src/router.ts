@@ -11,8 +11,10 @@ export type Path =
   | `/auth`
   | `/buddies`
   | `/buddies/messages`
+  | `/campus`
   | `/home`
   | `/profile`
+  | `/projects`
   | `/settings`
   | `/skillshare`
   | `/skillshare/messages`
