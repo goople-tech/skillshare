@@ -20,9 +20,9 @@ export function DashboardView() {
   const { user } = useSession()
   const navigate = useNavigate()
   const workspace = useWorkspace()
-  const { snapshot, updateProfile, createSkillOffer, createProjectOffer } = workspace
+  const { snapshot, updateProfile, createProjectOffer } = workspace
   const [mode, setMode] = useState<'sample' | 'empty'>('sample')
-  const [dialog, setDialog] = useState<'buddy' | 'skill' | 'project' | null>(null)
+  const [dialog, setDialog] = useState<'project' | null>(null)
   const [profilePerson, setProfilePerson] = useState<Person | null>(null)
   const [taskError, setTaskError] = useState('')
   const editorRef = useRef<ProfileEditorHandle>(null)
@@ -54,29 +54,29 @@ export function DashboardView() {
     clearNotice()
     notify(workspace.kind === 'preview' ? 'Profile updated in this preview only. No server update was performed.' : 'Profile saved.')
   }
-  const handleSaveOffer = async (kind: 'skill' | 'project', details: { offer?: string; learn?: string; title?: string; help?: string }) => {
+  const handleSaveOffer = async (details: { title?: string; help?: string }) => {
     setTaskError('')
     setRecoverableError(false)
     try {
-      if (kind === 'skill') await createSkillOffer({ teach: details.offer ?? '', learn: details.learn ?? '' })
-      else await createProjectOffer({ title: details.title ?? '', skillsNeeded: (details.help ?? '').split(',').map((item) => item.trim()).filter(Boolean) })
+      await createProjectOffer({ title: details.title ?? '', skillsNeeded: (details.help ?? '').split(',').map((item) => item.trim()).filter(Boolean) })
       clearNotice()
       setRecoverableError(false)
-      notify(`${kind === 'skill' ? 'Skill offer' : 'Project idea'} saved in this preview only. Nothing was published or sent.`)
+      notify('Project idea saved in this preview only. Nothing was published or sent.')
     } catch (reason) {
       setTaskError(reason instanceof Error ? reason.message : 'Saving failed. Please try again.')
     }
   }
-  const findBuddy = () => setDialog('buddy')
+  const findBuddy = () => navigate('/buddies')
+  const navigateSkill = () => navigate('/skillshare')
 
   return <>
     {notice && <WorkspaceNotice message={notice} onClose={clearNotice} />}
     <main className="dashboard-content">
-      <WelcomeActions onFind={findBuddy} onOffer={() => setDialog('skill')} onProjects={() => navigate('/projects')} reading={isNewStudent} />
+      <WelcomeActions onFind={findBuddy} onOffer={navigateSkill} onProjects={() => navigate('/projects')} reading={isNewStudent} />
       {isSample && <div className="preview-mode-bar"><span className={isNewStudent ? 'preview-empty-label' : 'preview-sample-label'}><span className="summary-dot" aria-hidden="true" />{isNewStudent ? 'Getting started' : 'Sample workspace'}</span><select aria-label="Preview mode" value={mode} onChange={(event) => { setMode(event.target.value as 'sample' | 'empty'); void workspace.selectPreviewMode(event.target.value === 'empty'); clearNotice() }}><option value="sample">Example workspace</option><option value="empty">Getting-started view</option></select></div>}
       {!isSample && workspace.error && <ErrorPanel retry={workspace.retry} message={workspace.error} />}
       {isNewStudent ? <>
-        <GettingStarted profile={snapshot.profile} onProfile={openProfile} onFind={findBuddy} onSkill={() => setDialog('skill')} />
+        <GettingStarted profile={snapshot.profile} onProfile={openProfile} onFind={findBuddy} onSkill={navigateSkill} />
         <ProfileSummary ref={editorRef} id="profile-summary" name={profileName} initials={initials} profile={snapshot.profile} sourceKind={workspace.kind} onSave={saveProfile} />
       </> : recoverableError ? <ErrorPanel message={workspace.error} retry={async () => { await workspace.retry(); setRecoverableError(false) }} /> : isLoading ? <div className="dashboard-layout"><div className="dashboard-main"><LoadingRows rows={4} /></div><aside className="dashboard-aside"><LoadingRows rows={2} /></aside></div> : <>
         <div className="dashboard-layout">
@@ -92,7 +92,7 @@ export function DashboardView() {
       </>}
       {isSample && <p className="dashboard-privacy-note">Preview actions do not create bookings, send notifications, or update accounts.</p>}
     </main>
-    {dialog && <TaskDialog kind={dialog} isPreview={isSample} onClose={() => setDialog(null)} onError={setTaskError} error={taskError} onSave={handleSaveOffer} />}
+    {dialog && <TaskDialog isPreview={isSample} onClose={() => setDialog(null)} onError={setTaskError} error={taskError} onSave={handleSaveOffer} />}
     {profilePerson && <ProfileDetailsDialog person={profilePerson} onClose={() => setProfilePerson(null)} />}
   </>
 }

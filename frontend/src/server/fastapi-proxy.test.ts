@@ -18,7 +18,7 @@ describe('campus proxy prefix rewriting', () => {
   }
 
   it('forwards /presence to FastAPI, not its proxy namespace', async () => {
-    const response = await request('https://skillshare.app.space/api/campus/presence', {
+    const response = await request('https://flockwork.app.space/api/campus/presence', {
       method: 'POST', headers: { authorization: 'Bearer test-token', 'content-type': 'application/json' },
       body: '{"lat":0,"lng":0}',
     })
@@ -27,11 +27,11 @@ describe('campus proxy prefix rewriting', () => {
   })
 
   it('keeps detailed paths valid without accepting unknown or missing configuration', async () => {
-    expect((await request('https://skillshare.app.space/api/campus/me')).status).toBe(401)
-    expect((await request('https://skillshare.app.space/api/campus/heatmap')).status).toBe(401)
+    expect((await request('https://flockwork.app.space/api/campus/me')).status).toBe(401)
+    expect((await request('https://flockwork.app.space/api/campus/heatmap')).status).toBe(401)
     expect(vi.mocked(globalThis.fetch).mock.calls.map(call => String(call[0])))
       .toEqual(['https://api.example/presence/me', 'https://api.example/presence/heatmap'])
-    expect((await request('https://skillshare.app.space/api/campus/invalid')).status).toBe(404)
+    expect((await request('https://flockwork.app.space/api/campus/invalid')).status).toBe(404)
     expect(vi.mocked(globalThis.fetch)).toHaveBeenCalledTimes(2)
   })
 })
