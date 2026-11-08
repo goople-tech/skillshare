@@ -14,6 +14,7 @@ import { ProfileDetailsDialog } from './ProfileDetailsDialog'
 import { TaskDialog } from './RequestOfferDialogs'
 import { ErrorPanel, LoadingRows, WorkspaceNotice, useWorkspaceNotice } from './DashboardFeedback'
 import { SwipeLauncher } from '../swipe/SwipeLauncher'
+import { DashboardTour } from './DashboardTour'
 import type { Person, ProfileDetails, RequestStatus } from './types'
 
 export function DashboardView() {
@@ -32,6 +33,19 @@ export function DashboardView() {
   const isLoading = workspace.status === 'loading'
   const [recoverableError, setRecoverableError] = useState(false)
   const { notice, notify, clearNotice } = useWorkspaceNotice()
+  const [tourOpen, setTourOpen] = useState(false)
+
+  useEffect(() => {
+    if (isLoading || isNewStudent) return
+    try {
+      if (!localStorage.getItem('flockwork-tour')) setTourOpen(true)
+    } catch { /* storage can be blocked; the tour button still opens it */ }
+  }, [isLoading, isNewStudent])
+
+  const closeTour = () => {
+    setTourOpen(false)
+    try { localStorage.setItem('flockwork-tour', 'done') } catch { /* the tour can still be opened again */ }
+  }
 
   useEffect(() => {
     if (!workspace.editProfileOpen) return
@@ -71,7 +85,7 @@ export function DashboardView() {
   return <>
     {notice && <WorkspaceNotice message={notice} onClose={clearNotice} />}
     <main className="dashboard-content">
-      <WelcomeActions onFind={findBuddy} onOffer={() => setDialog('skill')} onProjects={() => setDialog('project')} reading={isNewStudent} />
+      <WelcomeActions onFind={findBuddy} onOffer={() => setDialog('skill')} onProjects={() => setDialog('project')} onTour={() => setTourOpen(true)} reading={isNewStudent} />
       {isSample && <div className="preview-mode-bar"><span className={isNewStudent ? 'preview-empty-label' : 'preview-sample-label'}><span className="summary-dot" aria-hidden="true" />{isNewStudent ? 'Getting started' : 'Sample workspace'}</span><select aria-label="Preview mode" value={mode} onChange={(event) => { setMode(event.target.value as 'sample' | 'empty'); void workspace.selectPreviewMode(event.target.value === 'empty'); clearNotice() }}><option value="sample">Example workspace</option><option value="empty">Getting-started view</option></select></div>}
       {!isSample && workspace.error && <ErrorPanel retry={workspace.retry} message={workspace.error} />}
       {isNewStudent ? <>
@@ -94,6 +108,7 @@ export function DashboardView() {
     </main>
     {dialog && <TaskDialog kind={dialog} isPreview={isSample} onClose={() => setDialog(null)} onError={setTaskError} error={taskError} onSave={handleSaveOffer} />}
     {profilePerson && <ProfileDetailsDialog person={profilePerson} onClose={() => setProfilePerson(null)} />}
+    {tourOpen && !isLoading && <DashboardTour onClose={closeTour} />}
   </>
 }
 
