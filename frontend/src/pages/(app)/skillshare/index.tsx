@@ -9,7 +9,7 @@ export default function SkillSharePage() { return <SessionProvider><SkillShareCo
 function SkillShareContent() {
   const { isLoaded, isSignedIn, signIn } = useSession()
   const navigate = useNavigate()
-  return <><title>SkillShare discovery — UBC Ver.</title><AppNavigation activities={[]} onFind={() => document.getElementById('skill-category')?.focus()} onEditProfile={() => navigate('/profile')} />
+  return <><title>SkillShare discovery — Flockwork</title><AppNavigation activities={[]} onFind={() => document.getElementById('skill-category')?.focus()} onEditProfile={() => navigate('/profile')} />
     {isLoaded && <main className="dashboard-content discovery-content">{isSignedIn ? <SkillShareDiscovery /> : <SignedOutSkillShare onSignIn={() => void signIn()} />}</main>}
     {!isLoaded && <main className="dashboard-content discovery-content" aria-busy="true"><p className="discovery-loading-session">Loading your SkillShare workspace…</p></main>}
     {isSignedIn && <Link className="sr-only" to="/home">Back to dashboard</Link>}</>

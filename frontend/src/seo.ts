@@ -26,7 +26,7 @@ declare const __DEEPSPACE_SITE_ORIGIN__: string | undefined
 
 export const seo = {
   title: APP_NAME,
-  description: 'Find your people at university. Meet study partners, exchange skills, and build a campus community that feels like home with UBC Ver.',
+  description: 'Find your people at university. Meet study partners, exchange skills, and build a campus community that feels like home with Flockwork.',
   /** Public origin for canonical URLs, og:url, and the sitemap — no trailing
    *  slash. Replace with the custom domain once one is attached, e.g.
    *  'https://www.example.com'. */

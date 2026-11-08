@@ -11,7 +11,7 @@ export default function ProjectsPage() { return <SessionProvider><ProjectsConten
 function ProjectsContent() {
   const { isLoaded, isSignedIn, signIn } = useSession()
   const navigate = useNavigate()
-  return <><title>Projects — UBC Ver.</title><AppNavigation activities={[]} onFind={() => document.getElementById('project-title')?.focus()} onEditProfile={() => navigate('/profile')} />
+  return <><title>Projects — Flockwork</title><AppNavigation activities={[]} onFind={() => document.getElementById('project-title')?.focus()} onEditProfile={() => navigate('/profile')} />
     {isLoaded && <main className="dashboard-content discovery-content">{isSignedIn ? <ProjectsView /> : <section className="dashboard-card buddies-signed-out" aria-labelledby="projects-signed-out-title">
       <h1 id="projects-signed-out-title">Find teammates for your project</h1>
       <p>Sign in with your UBC email to find students who can help build what you’re making.</p>

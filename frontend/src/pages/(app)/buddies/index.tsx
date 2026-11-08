@@ -9,7 +9,7 @@ export default function BuddiesPage() { return <SessionProvider><BuddiesContent 
 function BuddiesContent() {
   const { isLoaded, isSignedIn, signIn } = useSession()
   const navigate = useNavigate()
-  return <><title>Buddies — UBC Ver.</title><AppNavigation activities={[]} onFind={() => document.getElementById('swipe-decks')?.focus()} onEditProfile={() => navigate('/profile')} />
+  return <><title>Buddies — Flockwork</title><AppNavigation activities={[]} onFind={() => document.getElementById('swipe-decks')?.focus()} onEditProfile={() => navigate('/profile')} />
     {isLoaded && <main className="dashboard-content discovery-content">{isSignedIn ? <SwipeLauncher /> : <section className="dashboard-card buddies-signed-out" aria-labelledby="buddies-signed-out-title">
       <h1 id="buddies-signed-out-title">Find your study buddies</h1>
       <p>Sign in with your UBC email to see students who share your courses and interests.</p>

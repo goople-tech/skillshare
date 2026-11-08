@@ -7,7 +7,7 @@ import { ClientRuntimeProvider } from '../client-runtime'
 export default function AuthPage() {
   return (
     <ClientRuntimeProvider>
-      <AuthShell title="Log in · UBC Ver.">
+      <AuthShell title="Log in · Flockwork">
         <Navigate to="/home" replace />
       </AuthShell>
     </ClientRuntimeProvider>
