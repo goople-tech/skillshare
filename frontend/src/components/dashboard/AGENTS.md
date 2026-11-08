@@ -1,26 +1,24 @@
 # Dashboard workspace
 
 ## Product intent
-- `/home` is a task-oriented student workspace, not a second landing page. Attention items (requests), next sessions, and lightweight discovery come before secondary previews.
-- Use the existing DM Sans/Lora typography and the approved UBC Ver. palette. Keep panels compact, borders subtle, and controls keyboard accessible. Do not introduce gradients, match scores, dating mechanics, or fictional usage/verification metrics.
+`/home` is a task-oriented workspace, not a marketing page. Requests and next actions take priority. Use the shared blue/ivory palette; keep body copy and controls readable (normally 14–18px), don't reintroduce tiny repeated captions or fake match scores. Preserve the two-column desktop layout and the attention-first mobile order.
 
-## Data and authentication boundaries
-- `useWorkspaceData.tsx` owns a clearly labelled, in-memory UI-preview adapter. `sampleData.ts` contains UI fixtures—not live students, notifications, session bookings, matching results, activity analytics, or API results.
-- Preview mutations change local UI state only. Never let their labels imply network delivery, scheduling, persistent requests, or saved server profiles. Duplicate per-entity actions are guarded by stable keys in `busyActions`.
-- Replace the adapter as a unit when a backend contract is available; map loading/error/empty states explicitly and preserve optimistic-action rollback where mutations can fail. Do not add credentials or break frontend boundaries to make preview actions look live.
-- Do not implement or bypass authentication here. The team-owned Auth0 integration will replace the temporary gate/navigation identity. Tests use DeepSpace server-issued test identities only, never real university sign-ins.
-- `verified` must only come from explicit server-side proof. Never infer student verification from an email address, name, route guard, Auth0 token presence, or account role. If that API is unavailable, omit the verified badge rather than passing `false` and claiming a check happened.
-- Do not expose personal contact information, exact location, or full schedules. `CampusPreview.tsx` is an illustrative broad-area map only.
+## Data-source boundary (future backend)
 
-## Layout and interactions
-- `home.tsx` owns one outer workspace provider and the temporary app header. `DashboardView.tsx` consumes that provider—never add a second nested provider.
-- Navigation destinations must target working sections or defined routes. Respect reduced motion for section scrolling. Return to `/home` through the enhanced `Wordmark` `href` prop.
-- Shared Base UI dropdowns use explicit non-modal behavior (`Menu.Root modal={false}`) so surrounding dashboard controls remain operable. Use tests for Escape/outside dismissal and pointer reachability rather than forced clicks.
-- Native modal dialogs must close and invoke React cleanup on both pointer/X dismissal and Escape. Tests should verify zero dialogs after cancellation.
-- The profile editor remains local until the shared profile endpoint is wired. The external menu opens the preview profile editor via provider UI state, without mutating the workspace preview mode.
-- Tablet uses two columns; mobile switches to one with requests/upcoming/discovery first. Preserve no horizontal overflow around 390px and test the exact unread-count button accessible name as notification state changes.
+- Presentational cards consume **dashboard view models in `types.ts` only**. They never fetch, know API URLs, or receive raw Auth0/FastAPI records.
+- `dataSource.ts` is the required I/O contract: snapshot read plus request, profile, recommendation, notification and offer mutations. `useWorkspaceData.tsx` owns loading/errors, snapshot updates, per-key duplicate protection and re-render synchronization. `home.tsx` provides its instance and stable identity mapping; don't create nested providers.
+- `previewDataSource.ts` is an explicitly in-memory demo source. Fixtures never describe real students, working messages, bookings or live campus activity. Do not make preview confirmations sound like successful network operations.
+- `apiDataSource.ts` provides an initial connector for existing `/me` and `/skillshare/matches` resources, with mapping at the boundary. `useApiClient.ts` transports Auth0 bearer tokens through `api.js`. Switch from `PreviewWorkspaceDataSource` by supplying `source={apiSource}` to `WorkspaceProvider`, not by inserting fetch calls in cards.
+- Unimplemented API operations reject with a direct explanation. Add a real backend contract before changing connector method signatures or pretending these writes work. Actual recommendations have no live notifications/sessions/requests yet; expose empty or pending states honestly.
+- Account verification is not student-role verification. Keep `verified` false/omitted until a server supplies a distinct eligibility proof; do not infer it from Auth0, a UBC-domain email, an `/account` route or profile presence. Retrieval of other students needs a deliberately limited public profile, not unrestricted private `UserOut` data.
+- API field normalization (`profileFromApi`, `personFromApi`, `skillMatchesFromApi`) is the one translation point. Do not shift client field names into backend payloads without confirming server changes. Keep errors readable and non-sensitive, preserve previous data on a failed write, and only show success after server acknowledgement.
+
+## Layout and interaction contracts
+
+- The dashboard uses native modal dialogs. Center modals with `inset: 0; margin: auto;` and bounded viewport dimensions, including notifications/search, request details, recommendations and offer creation. Menus remain actual anchored dropdowns.
+- Profile forms and offer forms are async: guard duplicate submissions, show local busy/errors and never silently drop failed backend mutations.
+- Base UI dropdowns use explicit non-modal behavior. Preserve Escape/outside dismissal and focus restoration. Cancel native dialogs through cleanup, not duplicate state-driven event callbacks.
+- Preserve keyboard search, reduced-motion scrolling, semantic regions, visible focus, and accessible notification names that update with read count. Require no horizontal overflow at 390px.
 
 ## Verification
-From `frontend/`, run `npm run type-check`, `npm run lint`, `npm run build`, and the authenticated browser coverage:
-`./node_modules/.bin/deepspace test run tests/dashboard-views.spec.ts`.
-Include the smoke/API suite before merging. Screenshots at desktop and mobile and keyboard-dismissal checks are expected for substantial UI changes. Do not deploy from this directory without explicit authorization.
+Run `npm run type-check`, `npm run lint`, `npm run build`, `npm run test:unit`, the dashboard browser specs, and the smoke/API regression checks. Dialog tests must exercise actual pointer and keyboard behavior and validate centering plus enlarged text. Preview remains active until the backend contract/profile privacy/deployment API configuration is supplied intentionally.

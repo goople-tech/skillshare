@@ -5,12 +5,15 @@ import { DashboardView } from '../../components/dashboard'
 import { WorkspaceProvider, useWorkspace } from '../../components/dashboard/useWorkspaceData'
 import { SessionProvider, useSession } from '../../components/dashboard/useSession'
 
-export default function HomePage() {
-  return <SessionProvider><WorkspaceProvider><HomeContent /></WorkspaceProvider></SessionProvider>
+export default function HomeShell() {
+  return <SessionProvider><HomeContent /></SessionProvider>
 }
 function HomeContent() {
+  const { user, isLoaded, isSignedIn } = useSession()
+  return <WorkspaceProvider user={user}><DashboardContent isLoaded={isLoaded} isSignedIn={isSignedIn} /></WorkspaceProvider>
+}
+function DashboardContent({ isLoaded, isSignedIn }: { isLoaded: boolean; isSignedIn: boolean }) {
   const { snapshot, setEditProfileOpen } = useWorkspace()
-  const { isLoaded, isSignedIn } = useSession()
   return <>
     <title>Your Dashboard — UBC Ver.</title>
     <AppNavigation activities={snapshot.activities} onFind={() => document.getElementById('skills-matches')?.scrollIntoView({ behavior: 'smooth' })} onEditProfile={() => setEditProfileOpen(true)} />
