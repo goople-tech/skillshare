@@ -222,7 +222,10 @@ def _presence_cutoff() -> datetime:
 
 
 def _prune_presence(db: Session) -> None:
-    db.query(models.Presence).filter(models.Presence.updated_at < _presence_cutoff()).delete(synchronize_session=False)
+    # TEMPORARY, DEMO ONLY: skip the expiry check so each person's most recent point stays on the map.
+    # Restore the original line below (and delete the `return`) after the demo.
+    return
+    # db.query(models.Presence).filter(models.Presence.updated_at < _presence_cutoff()).delete(synchronize_session=False)
 
 
 def _check_coord(lat: float, lng: float) -> None:
