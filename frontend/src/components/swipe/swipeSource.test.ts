@@ -31,4 +31,12 @@ describe('swipe data source', () => {
     expect((await source.loadDeck('skill')).map((c) => c.id)).not.toContain(deck[0].id)
     expect((await source.loadDeck('buddy')).map((c) => c.id)).toContain(deck[0].id)
   })
+  it('maps messages and polls with the last seen id', async () => {
+    const paths: string[] = []
+    const source = new ApiSwipeSource(async <T,>(path: string) => { paths.push(path); return (path.includes('after_id') ? [{ id: 9, mine: false, body: 'hi', sent_at: '2026-11-08T12:00:00' }] : { id: 10, mine: true, body: 'hey', sent_at: '2026-11-08T12:01:00' }) as T })
+    expect(await source.loadMessages('4', 8)).toEqual([{ id: 9, mine: false, body: 'hi', sentAt: '2026-11-08T12:00:00' }])
+    expect((await source.sendMessage('4', 'hey')).mine).toBe(true)
+    expect(paths).toEqual(['/messages/4?after_id=8', '/messages/4'])
+    await expect(new PreviewSwipeSource().sendMessage()).rejects.toThrow('campus service')
+  })
 })

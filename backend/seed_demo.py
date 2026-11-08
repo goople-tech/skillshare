@@ -3,7 +3,8 @@
 Usage (from backend/, with the venv active):
     python seed_demo.py                              # add/refresh demo students
     python seed_demo.py --like-back you@student.ubc.ca
-        # demo students also "like" that account in both decks, so liking them shows a match
+        # demo students also "like" that account in both decks, so liking them shows a match,
+        # and Maya Chen leaves a demo message that appears once you match with her
     python seed_demo.py --remove                     # delete demo students and their swipes
 
 Demo accounts use @demo.ubcver.invalid addresses, so they can never sign in, and every
@@ -40,6 +41,7 @@ def main():
         if args.remove:
             ids = [u.id for u in demo_users]
             db.query(models.Swipe).filter((models.Swipe.swiper_id.in_(ids)) | (models.Swipe.target_id.in_(ids))).delete(synchronize_session=False)
+            db.query(models.Message).filter((models.Message.sender_id.in_(ids)) | (models.Message.recipient_id.in_(ids))).delete(synchronize_session=False)
             for u in demo_users:
                 db.delete(u)
             db.commit()
@@ -68,8 +70,14 @@ def main():
                         row.direction = "like"
                     else:
                         db.add(models.Swipe(swiper_id=user.id, target_id=me.id, kind=kind, direction="like"))
+            maya = by_email.get("maya.chen" + DOMAIN)
+            already = db.query(models.Message).filter_by(sender_id=maya.id, recipient_id=me.id).first() if maya else None
+            if maya and not already:
+                # Visible only after you match with Maya (messages need a mutual like).
+                db.add(models.Message(sender_id=maya.id, recipient_id=me.id, body="Hi! Want to study for CPSC 213 together this week? (demo message)"))
             db.commit()
             print(f"Demo students now like {me.email} in both decks: liking one back shows a match.")
+            print("Match with Maya Chen to see a demo message in the chat.")
     finally:
         db.close()
 

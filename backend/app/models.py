@@ -68,3 +68,13 @@ class Swipe(Base):
     kind: Mapped[str] = mapped_column(String)        # buddy | skill
     direction: Mapped[str] = mapped_column(String)   # like | pass
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class Message(Base):
+    """A direct message. Only allowed between students who matched in a swipe deck."""
+    __tablename__ = "messages"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    sender_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    recipient_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)

@@ -8,8 +8,8 @@ import type { Activity } from './types'
 
 const links = [
   { id: 'dashboard-top', label: 'Dashboard', icon: Home },
-  { id: 'requests', label: 'Buddies', icon: Users },
-  { id: 'skills-matches', label: 'SkillShare', icon: GraduationCap },
+  { id: 'buddies', label: 'Buddies', icon: Users },
+  { id: 'skillshare', label: 'SkillShare', icon: GraduationCap },
   { id: 'projects', label: 'Projects', icon: FolderKanban },
   { id: 'campus-activity', label: 'Campus Activity', icon: MapPin },
 ]
@@ -34,7 +34,8 @@ export function AppNavigation({ activities, onFind, onEditProfile }: { activitie
     setMobileOpen(false)
     setNotificationOpen(false)
     if (id === 'dashboard-top') return navigate('/home')
-    const section = document.getElementById(id)
+    // Buddies and SkillShare share the "Meet people" section; the hash selects which phone is in front.
+    const section = document.getElementById(id === 'buddies' || id === 'skillshare' ? 'meet' : id)
     if (!section) return
     section.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
     section.focus({ preventScroll: true })

@@ -21,4 +21,6 @@ export type SwipeCardView = {
 export type SwipeOutcome = { matched: boolean; person?: SwipeCardView }
 export type SwipeMatchView = { kind: SwipeKind; person: SwipeCardView }
 
+export type MessageView = { id: number; mine: boolean; body: string; sentAt: string }
+
 export const DECK_LABEL: Record<SwipeKind, string> = { buddy: 'Buddies', skill: 'SkillShare' }

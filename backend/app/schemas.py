@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -147,3 +148,14 @@ class SwipeResult(BaseModel):
 class SwipeMatch(BaseModel):
     kind: SwipeKind
     profile: StudentMatchOut
+
+
+class MessageIn(BaseModel):
+    body: str = Field(min_length=1, max_length=1000)
+
+
+class MessageOut(BaseModel):
+    id: int
+    mine: bool
+    body: str
+    sent_at: datetime

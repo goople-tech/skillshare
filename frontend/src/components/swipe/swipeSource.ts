@@ -1,4 +1,4 @@
-import type { SwipeCardView, SwipeDirection, SwipeKind, SwipeMatchView, SwipeOutcome } from './types'
+import type { MessageView, SwipeCardView, SwipeDirection, SwipeKind, SwipeMatchView, SwipeOutcome } from './types'
 
 /** I/O boundary for the swipe decks, mirroring the dashboard's data-source pattern. */
 export interface SwipeDataSource {
@@ -6,6 +6,9 @@ export interface SwipeDataSource {
   loadDeck(deck: SwipeKind): Promise<SwipeCardView[]>
   swipe(deck: SwipeKind, personId: string, direction: SwipeDirection): Promise<SwipeOutcome>
   loadMatches(): Promise<SwipeMatchView[]>
+  /** Messages with a matched student, oldest first; pass the last seen id to poll for new ones. */
+  loadMessages(personId: string, afterId?: number): Promise<MessageView[]>
+  sendMessage(personId: string, body: string): Promise<MessageView>
 }
 
 /** Backend shapes (FastAPI `StudentMatchOut`, `SwipeCard`, `SwipeResult`, `SwipeMatch`). Other students' photos are not shared. */
@@ -16,6 +19,7 @@ export type ApiPublicProfile = {
 export type ApiSwipeCard = { profile: ApiPublicProfile; reasons: string[] }
 export type ApiSwipeResult = { matched: boolean; profile: ApiPublicProfile | null }
 export type ApiSwipeMatch = { kind: SwipeKind; profile: ApiPublicProfile }
+export type ApiMessage = { id: number; mine: boolean; body: string; sent_at: string }
 export type Request = <T>(path: string, options?: { method?: string; body?: string }) => Promise<T>
 
 const split = (value: string) => (value ?? '').split(',').map((item) => item.trim()).filter(Boolean)
@@ -57,7 +61,16 @@ export class ApiSwipeSource implements SwipeDataSource {
     const matches = await this.request<ApiSwipeMatch[]>('/swipe/matches')
     return matches.map((match) => ({ kind: match.kind, person: cardFromApi(match.profile) }))
   }
+  async loadMessages(personId: string, afterId = 0) {
+    const rows = await this.request<ApiMessage[]>(`/messages/${Number(personId)}?after_id=${afterId}`)
+    return rows.map(messageFromApi)
+  }
+  async sendMessage(personId: string, body: string) {
+    return messageFromApi(await this.request<ApiMessage>(`/messages/${Number(personId)}`, { method: 'POST', body: JSON.stringify({ body }) }))
+  }
 }
+
+export const messageFromApi = (row: ApiMessage): MessageView => ({ id: row.id, mine: row.mine, body: row.body, sentAt: row.sent_at })
 
 const sample = (id: number, name: string, courses: string, interests: string, teach: string, learn: string, mode: string, energy: string, reasons: Record<SwipeKind, string[]>) =>
   ({ card: cardFromApi({ id, name, bio: 'Sample card · not a real student', courses, interests, skills_teach: teach, skills_learn: learn, mode, energy }), reasons })
@@ -81,4 +94,6 @@ export class PreviewSwipeSource implements SwipeDataSource {
     return { matched: false } // sample people can't like you back
   }
   async loadMatches() { return [] }
+  loadMessages(): Promise<MessageView[]> { return Promise.reject(new Error('Messaging needs the campus service.')) }
+  sendMessage(): Promise<MessageView> { return Promise.reject(new Error('Messaging needs the campus service.')) }
 }

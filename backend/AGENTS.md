@@ -39,3 +39,7 @@ Dependencies are in `requirements.txt`; use an isolated virtual environment. Cop
 - `app/swipe.py` (router included in `main.py`) owns `GET /swipe/{buddy|skill}/deck`, `POST /swipe` and `GET /swipe/matches`, backed by the `swipes` table (`models.Swipe`, one row per swiper/target/deck; swiping again updates it).
 - Decks rank by compatibility only and return `StudentMatchOut` (no email, stored photo, XP or location) plus plain-language `reasons`; ranking points never leave the server. A match is a mutual like in the same deck.
 - `seed_demo.py` adds clearly labelled demo students (`@demo.ubcver.invalid`, cannot sign in); `--like-back EMAIL` makes them like that account so a live demo can show a match; `--remove` deletes them. Tests: `tests/test_swipe.py`.
+
+## Messages
+
+- `app/messages.py` (router included in `main.py`): `GET /messages/{user_id}?after_id=` (oldest first, poll with the last seen id) and `POST /messages/{user_id}` (1–1000 chars, trimmed), backed by `models.Message`. Only mutual matches (a like each way in the same deck) may read or send; unknown and unmatched users get the same 403 so accounts can't be probed. Unmatching (changing a like to pass) stops messaging. No realtime push yet; add rate limits before production. Tests: `tests/test_messages.py`.
