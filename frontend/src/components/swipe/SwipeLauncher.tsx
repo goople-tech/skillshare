@@ -61,8 +61,9 @@ export function SwipeLauncher({ skillOnly = false, cardProps, onDismiss }: { ski
   }, [navigate, skillOnly])
 
   const refreshMatches = useCallback(async () => {
-    try { setMatches(await source.loadMatches()) } catch { /* the deck and browser show service errors; keep last known matches */ }
-  }, [source])
+    // The SkillShare page lists only SkillShare matches; Buddies matches belong on /buddies.
+    try { const loaded = await source.loadMatches(); setMatches(skillOnly ? loaded.filter((match) => match.kind === 'skill') : loaded) } catch { /* the deck and browser show service errors; keep last known matches */ }
+  }, [source, skillOnly])
   const loadCards = useCallback(async () => {
     if (!browse) return
     setStatus('loading'); setError('')
