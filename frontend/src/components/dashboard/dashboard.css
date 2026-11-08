@@ -34,7 +34,7 @@
 }
 .search-trigger svg { color: var(--ocean); flex-shrink: 0; }
 .search-trigger kbd { font: 13px 'DM Sans', sans-serif; margin-left: 12px; color: var(--ink-muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 4px; }
-.search-mobile, .workspace-nav-menu { display: none; }
+.search-mobile { display: none; }
 .workspace-icon-btn {
   position: relative; display: inline-grid; place-items: center;
   flex-shrink: 0; min-width: 38px; min-height: 38px;
@@ -279,9 +279,9 @@
  .request-actions { margin-left: 0; }
  .project-guide { flex-direction: column; align-items: flex-start; }
 }
-@media (max-width: 870px) {
+@media (max-width: 680px) {
  .workspace-nav { display: none; }
- .workspace-icon-btn.workspace-nav-menu { display: inline-grid; }
+.workspace-icon-btn.workspace-nav-menu { display: inline-grid; }
  .profile-menu-trigger { margin-left: 0; }
  .dashboard-layout { grid-template-columns: minmax(0,1.25fr) minmax(230px,1fr); }
  .dashboard-lower-grid, .matches-grid { grid-template-columns: 1fr; }
@@ -517,6 +517,18 @@
 .profile-menu-trigger { background: #F1ECE2; }
 .workspace-mobile-nav { width: min(1180px, calc(100% - 40px)); padding: 13px 22px 20px; margin: 8px auto 0; border: 1px solid #D8DFDF; border-radius: 22px; background: #F8F5EEF2; box-shadow: 0 14px 40px #173B5E26; }
 .workspace-mobile-item { gap: 8px; padding: 10px 0; font-size: 15px; }
+
+/* The smartphone menu is a viewport overlay anchored to the floating header.
+   It must not occupy document flow or follow the page while scrolling. */
+#workspace-mobile-nav {
+  position: fixed;
+  top: 78px;
+  left: 50%;
+  translate: -50% 0;
+  max-height: calc(100dvh - 100px);
+  overflow-y: auto;
+  z-index: 42;
+}
 @media (max-width: 1260px) {
   .workspace-header-inner { gap: 18px; }
   .workspace-nav { gap: 3px; }
@@ -540,5 +552,6 @@
   .workspace-header .wordmark-symbol { width: 26px; }
   .notification-btn { margin-left: auto; }
   .workspace-mobile-nav { width: calc(100% - 24px); border-radius: 18px; }
+  #workspace-mobile-nav { top: 76px; max-height: calc(100dvh - 96px); }
   .dashboard-signin { font-size: 12px; padding: 10px 13px; }
 }
