@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUpRight } from 'lucide-react'
-import { useAuthProfileReady } from 'deepspace'
+import { useSession } from './useSession'
 import { useWorkspace } from './useWorkspaceData'
 import { WelcomeActions } from './WelcomeActions'
 import { RequestsPanel } from './RequestsPanel'
@@ -16,7 +16,7 @@ import { ErrorPanel, LoadingRows, WorkspaceNotice, useWorkspaceNotice } from './
 import type { Person, ProfileDetails, RequestStatus } from './types'
 
 export default function DashboardView() {
-  const { user } = useAuthProfileReady({ requireUser: true })
+  const { user } = useSession()
   const workspace = useWorkspace()
   const { snapshot, retry, status, acceptRequest, declineRequest, markAllRead, setDemoMode, connect, sendExchange } = workspace
   const [mode, setMode] = useState<'sample' | 'empty'>('sample')

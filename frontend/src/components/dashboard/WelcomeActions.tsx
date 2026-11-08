@@ -1,9 +1,9 @@
 import { ArrowRight, FolderKanban, GraduationCap, Users } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { useAuthProfileReady } from 'deepspace'
+import { useSession } from './useSession'
 
 export function WelcomeActions({ onFind, onOffer, onProjects, reading = false }: { onFind: () => void; onOffer: () => void; onProjects: () => void; reading?: boolean }) {
-  const { user } = useAuthProfileReady({ requireUser: true })
+  const { user } = useSession()
   const [greeting, setGreeting] = useState('Good afternoon')
   useEffect(() => { const hour = new Date().getHours(); setGreeting(`Good ${hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'}`) }, [])
   const name = user?.name?.trim().split(/\s+/)[0] ?? 'Student'

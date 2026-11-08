@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { AuthOverlay, signOut, useAuthProfileReady } from 'deepspace'
+import { useSession } from './useSession'
 import { Bell, CheckCheck, ChevronDown, FolderKanban, GraduationCap, Home, MapPin, Menu, Search, Settings, Settings2, UserRound, Users, X } from 'lucide-react'
 import { Wordmark } from '../landing/Wordmark'
 import { Avatar, AvatarFallback, AvatarImage, DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '../ui'
@@ -14,11 +14,10 @@ const links = [
   { id: 'campus-activity', label: 'Campus Activity', icon: MapPin },
 ]
 export function AppNavigation({ activities, onFind, onEditProfile }: { activities: Activity[]; onFind: () => void; onEditProfile: () => void }) {
-  const { isLoaded, isSignedIn, user, userLoading } = useAuthProfileReady({ requireUser: true })
+  const { isLoaded, isSignedIn, user, userLoading, signIn, signOut } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [notificationOpen, setNotificationOpen] = useState(false)
   const [searchOpen, setSearchOpen] = useState(false)
-  const [showAuth, setShowAuth] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
   const unread = activities.filter((activity) => activity.unread).length
@@ -47,7 +46,7 @@ export function AppNavigation({ activities, onFind, onEditProfile }: { activitie
       <nav aria-label="Dashboard navigation" className="workspace-nav">{links.map((item) => <button key={item.id} className={`workspace-nav-item ${location.hash === `#${item.id}` || (!location.hash && item.id === 'dashboard-top') ? 'workspace-nav-item--active' : ''}`} aria-current={location.hash === `#${item.id}` ? 'location' : undefined} onClick={() => navigateSection(item.id)}><item.icon size={16} />{item.label}</button>)}</nav>
       <button className="search-trigger" data-testid="workspace-search-trigger" onClick={() => setSearchOpen(true)}><Search size={16} /><span>Find people, courses, skills…</span><kbd>⌘ K</kbd></button>
       <button className="workspace-icon-btn notification-btn" onClick={() => setNotificationOpen(!notificationOpen)} aria-label={`Notifications${unread ? `, ${unread} unread` : ''}`} aria-expanded={notificationOpen} aria-controls="notification-panel"><Bell size={19} />{unread > 0 && <span className="notification-count" aria-hidden="true">{unread}</span>}</button>
-      {isLoaded && !isSignedIn && <button data-testid="nav-sign-in-button" className="button button--quiet" onClick={() => setShowAuth(true)}>Sign in</button>}
+      {isLoaded && !isSignedIn && <button data-testid="nav-sign-in-button" className="button button--quiet" onClick={() => void signIn()}>Sign in</button>}
       {isLoaded && isSignedIn && userLoading && <span className="skeleton skeleton-avatar" />}
       {isLoaded && isSignedIn && !userLoading && user && <DropdownMenu><DropdownMenuTrigger aria-label="Profile menu" className="profile-menu-trigger"><Avatar className="profile-nav-avatar">{user.imageUrl ? <AvatarImage src={user.imageUrl} referrerPolicy="no-referrer" /> : null}<AvatarFallback>{initials}</AvatarFallback></Avatar><ChevronDown size={14} /></DropdownMenuTrigger><DropdownMenuContent align="end"><DropdownMenuLabel><span data-testid="nav-user-name">{name}</span><small data-testid="nav-user-email">{user.email}</small></DropdownMenuLabel><DropdownMenuItem onClick={() => navigate('/profile')}><UserRound size={16} /> View profile</DropdownMenuItem><DropdownMenuItem onClick={onEditProfile}><Settings2 size={16} /> Edit profile</DropdownMenuItem><DropdownMenuItem onClick={() => navigate('/settings')}><Settings size={16} /> Settings</DropdownMenuItem><DropdownMenuSeparator /><DropdownMenuItem onClick={() => signOut()}><span>Log Out</span></DropdownMenuItem></DropdownMenuContent></DropdownMenu>}
       <button className="workspace-nav-menu workspace-icon-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label={mobileOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={mobileOpen} aria-controls="workspace-mobile-nav">{mobileOpen ? <X size={20} /> : <Menu size={20} />}</button>
@@ -55,7 +54,6 @@ export function AppNavigation({ activities, onFind, onEditProfile }: { activitie
     {mobileOpen && <nav id="workspace-mobile-nav" className="workspace-mobile-nav" aria-label="Mobile dashboard navigation">{links.map((item) => <button key={item.id} className="workspace-mobile-item" onClick={() => navigateSection(item.id)}><item.icon size={16} />{item.label}</button>)}<button className="search-mobile" onClick={() => setSearchOpen(true)}><Search size={16} /> Find students, courses, or skills</button></nav>}
     {notificationOpen && <section id="notification-panel" className="notification-panel" aria-labelledby="notification-panel-title"><div className="notification-head"><h2 id="notification-panel-title">Updates for you</h2><button aria-label="Close notifications" className="dialog-x" onClick={() => setNotificationOpen(false)}><X size={17} /></button></div>{activities.some((activity) => activity.unread) ? activities.filter((activity) => activity.unread).map((activity) => <article className="notification-preview" key={activity.id}><span className="activity-kind">{activity.kind}</span><p>{activity.text}</p><time>{activity.time}</time></article>) : <p className="notification-empty">You’re all caught up. Collaboration and exchange updates will appear here.</p>}<button className="button button--quiet" onClick={() => navigateSection('activity')}><CheckCheck size={15} /> View recent activity</button></section>}
     {searchOpen && <SearchDialog onClose={() => setSearchOpen(false)} onFind={onFind} />}
-    {showAuth && <AuthOverlay onClose={() => setShowAuth(false)} />}
   </>
 }
 function SearchDialog({ onClose, onFind }: { onClose: () => void; onFind: () => void }) {

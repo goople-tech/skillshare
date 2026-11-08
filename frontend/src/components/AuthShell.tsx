@@ -7,7 +7,7 @@ import { Auth0Provider, useAuth0 } from '@auth0/auth0-react'
 /** A leftover "is authenticated" cookie with no cached session makes Auth0 try a silent
  * login through a hidden iframe, which hangs ("Loading…") when the browser blocks
  * third-party cookies. Drop the stale cookie so the login button shows right away. */
-function dropStaleAuth0Cookies(clientId: string) {
+export function dropStaleAuth0Cookies(clientId: string) {
   if (typeof window === 'undefined') return
   if (Object.keys(window.localStorage).some((k) => k.startsWith('@@auth0spajs@@'))) return
   for (const name of [`auth0.${clientId}.is.authenticated`, 'auth0.is.authenticated']) {
@@ -56,7 +56,12 @@ export function AuthShell({ title, children }: { title: string; children: ReactN
         scope: 'openid profile email',
       }}
       cacheLocation="localstorage"
-      onRedirectCallback={() => window.history.replaceState({}, '', '/auth')}
+      onRedirectCallback={(appState) => {
+        // Logins started elsewhere (e.g. /home) ask to be sent back there.
+        const back = appState?.returnTo
+        if (typeof back === 'string' && back.startsWith('/') && back !== '/auth') window.location.replace(back)
+        else window.history.replaceState({}, '', '/auth')
+      }}
     >
       <title>{title}</title>
       <meta name="robots" content="noindex" />
