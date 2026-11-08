@@ -11,12 +11,16 @@ function backendOrigin(value: string | undefined): string | null {
 }
 
 /** Forward only intended APIs with the caller's verified token to hosted FastAPI. */
+function upstreamPresencePath(path: string): string {
+  return path.startsWith('presence') ? path : path ? `presence/${path}` : ''
+}
+
 export function registerFastApiProxy(app: Hono<AppContext>) {
   const allowed = new Set(['presence', 'presence/me', 'presence/heatmap'])
   app.all('/api/campus/:path{.+}', async (c) => {
     const origin = backendOrigin(c.env.VITE_API_URL)
     if (!origin) return c.json({ detail: 'Campus service is not configured.' }, 503)
-    const path = c.req.param('path') || ''
+    const path = upstreamPresencePath(c.req.param('path') || '')
     if (!allowed.has(path)) return c.json({ error: 'not_found' }, 404)
     const headers = new Headers()
     // Forward only expected public API bodies plus caller auth, never internal headers.
