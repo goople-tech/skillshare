@@ -26,9 +26,12 @@ import { schemas } from '../../schemas'
 import { ClientRuntimeProvider } from '../../client-runtime'
 import '../../runtime.css'
 
+const WORKSPACE_PAGES = new Set(['/home', '/profile', '/skillshare', '/buddies', '/projects', '/campus'])
+
 export default function AppLayout() {
   const { pathname } = useLocation()
-  const workspaceShell = pathname === '/home' || pathname === '/profile' || pathname === '/skillshare'
+  // Pages that render their own AppNavigation; the DeepSpace Navigation would be a second bar.
+  const workspaceShell = WORKSPACE_PAGES.has(pathname.replace(/\/+$/, '') || '/')
   return (
     <ClientRuntimeProvider><DeepSpaceAuthProvider>
       {/* The prerendered landing owns the document <title> and React drops it
