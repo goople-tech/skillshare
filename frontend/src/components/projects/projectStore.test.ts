@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { loadProjects, MAX_SKILLS, newProject, parseSkills, saveProjects, STORAGE_KEY, teammatesQuery } from './projectStore'
-
-const memory = () => { const data = new Map<string, string>(); return { getItem: (k: string) => data.get(k) ?? null, setItem: (k: string, v: string) => { data.set(k, v) } } }
+import { ApiProjectSource, MAX_SKILLS, parseSkills } from './projectStore'
+import type { Request } from '../swipe/swipeSource'
 
 describe('parseSkills', () => {
   it('trims, drops blanks and case/space duplicates', () => {
@@ -12,27 +11,28 @@ describe('parseSkills', () => {
   })
 })
 
-describe('storage', () => {
-  it('round-trips projects', () => {
-    const store = memory()
-    const project = newProject('  Bike map ', 'Find safe routes', 'React, Leaflet', 1)
-    expect(saveProjects([project], store)).toBe(true)
-    expect(loadProjects(store)).toEqual([project])
-    expect(project.title).toBe('Bike map')
+describe('ApiProjectSource', () => {
+  const recorder = () => {
+    const calls: Array<{ path: string; method?: string; body?: unknown }> = []
+    const request = (async (path: string, options?: { method?: string; body?: string }) => {
+      calls.push({ path, method: options?.method, body: options?.body ? JSON.parse(options.body) : undefined })
+      return [] as never
+    }) as Request
+    return { calls, source: new ApiProjectSource(request) }
+  }
+  it('uses the backend project endpoints', async () => {
+    const { calls, source } = recorder()
+    await source.list()
+    await source.create({ title: 'Bike map', pitch: '', skills_needed: ['React'] })
+    await source.remove(7)
+    await source.teammates(7)
+    await source.like(3)
+    expect(calls).toEqual([
+      { path: '/projects', method: undefined, body: undefined },
+      { path: '/projects', method: 'POST', body: { title: 'Bike map', pitch: '', skills_needed: ['React'] } },
+      { path: '/projects/7', method: 'DELETE', body: undefined },
+      { path: '/projects/7/teammates?limit=6', method: undefined, body: undefined },
+      { path: '/swipe', method: 'POST', body: { target_id: 3, kind: 'skill', direction: 'like' } },
+    ])
   })
-  it('ignores corrupt or malformed data', () => {
-    const store = memory()
-    store.setItem(STORAGE_KEY, '{not json')
-    expect(loadProjects(store)).toEqual([])
-    store.setItem(STORAGE_KEY, JSON.stringify([{ id: 1 }, newProject('ok', '', 'x', 2)]))
-    expect(loadProjects(store).map((p) => p.title)).toEqual(['ok'])
-  })
-  it('survives missing storage', () => {
-    expect(loadProjects(undefined)).toEqual([])
-    expect(saveProjects([], undefined)).toBe(false)
-  })
-})
-
-it('teammatesQuery repeats the skills param', () => {
-  expect(teammatesQuery(['React', 'C++'])).toBe('skills=React&skills=C%2B%2B&limit=6')
 })

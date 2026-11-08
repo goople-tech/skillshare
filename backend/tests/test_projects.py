@@ -86,3 +86,43 @@ def test_requires_login():
         assert client.get("/projects/teammates", params={"skills": ["pj-react"]}).status_code in (401, 403)
     finally:
         login("pj-owner@student.ubc.ca")
+
+
+# --- Persisted projects -------------------------------------------------------
+
+def create(title="pj-Bike map", skills=("pj-react", "pj-fastapi"), pitch="Safe routes", email="pj-owner@student.ubc.ca"):
+    login(email)
+    return client.post("/projects", json={"title": title, "pitch": pitch, "skills_needed": list(skills)})
+
+
+def test_create_list_and_delete_project():
+    r = create(skills=(" pj-react ", "PJ-REACT", "", "pj-fastapi"))
+    assert r.status_code == 201
+    project = r.json()
+    assert project["skills_needed"] == ["pj-react", "pj-fastapi"]
+    assert project["is_mine"] and project["owner"]["name"] == "Owner" and "email" not in project["owner"]
+
+    login("pj-ana@student.ubc.ca")
+    seen = {p["id"]: p for p in client.get("/projects").json()}
+    assert project["id"] in seen and seen[project["id"]]["is_mine"] is False
+    assert all(p["id"] != project["id"] for p in client.get("/projects", params={"mine": True}).json())
+    assert client.delete(f"/projects/{project['id']}").status_code == 404  # not the owner
+
+    login("pj-owner@student.ubc.ca")
+    assert [p["id"] for p in client.get("/projects", params={"mine": True}).json()][0] == project["id"]
+    assert client.delete(f"/projects/{project['id']}").json() == {"deleted": True}
+    assert all(p["id"] != project["id"] for p in client.get("/projects").json())
+
+
+def test_project_teammates_uses_saved_skills():
+    pid = create(skills=("pj-react",)).json()["id"]
+    login("pj-ben@student.ubc.ca")
+    body = client.get(f"/projects/{pid}/teammates").json()
+    assert body[0]["skill"] == "pj-react" and names(body[0]) == ["Ana"]
+    assert client.get("/projects/999999/teammates").status_code == 404
+
+
+def test_create_validation():
+    assert create(title="   ").status_code == 422
+    assert create(skills=(" ", ",")).status_code == 422
+    assert create(skills=()).status_code == 422

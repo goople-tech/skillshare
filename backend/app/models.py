@@ -110,3 +110,14 @@ class SkillReview(Base):
     taught: Mapped[int] = mapped_column(Integer)
     collaboration: Mapped[int] = mapped_column(Integer)
     updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Project(Base):
+    """A student project looking for teammates. Visible to signed-in students; only the owner can delete it."""
+    __tablename__ = "projects"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    title: Mapped[str] = mapped_column(String(80))
+    pitch: Mapped[str] = mapped_column(String(280), default="")
+    skills_needed: Mapped[str] = mapped_column(Text, default="")  # comma-separated, like skills_teach
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
