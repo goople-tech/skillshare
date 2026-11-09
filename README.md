@@ -1,59 +1,96 @@
 # Flockwork
 
-A warm, student-centered community platform built for HackCamp 2026. Flockwork helps students find study partners and friends, exchange skills, and discover project collaborators.
+A student-community hackathon project built for HackCamp 2026. Flockwork connects people through study buddies, skill exchanges, and project collaboration.
 
-> Flockwork is an independent student project and is not affiliated with the University of British Columbia.
+**Public site:** [flockwork.app.space](https://flockwork.app.space/)
 
-## Current scope
+Flockwork is an independent student project and is not affiliated with the University of British Columbia.
 
-This branch implements a responsive, accessible marketing landing page using React, TypeScript, Lora, DM Sans, and Lucide icons on the DeepSpace scaffold. The Buddies and SkillShare previews, activity heatmap, and profile artwork are illustrative—not live product or student data.
+## Current implementation
 
-The university-email dialog is an honest frontend prototype. It checks the backend's currently permitted UBC domains in the browser and explicitly confirms that no email is sent and no account is created. It must not be described as real student verification. The neutral `Log In` button currently opens the same prototype; wire it to the authenticated app separately.
+The repository includes both a public landing page and application routes connected to a FastAPI backend. It is no longer only a landing-page prototype.
 
-## Frontend-only local preview
+| Area | Implementation in this repository |
+| --- | --- |
+| Public landing page | React/TypeScript introduction with illustrative buddy cards, skill exchanges, and a campus map. These previews are not evidence of live users or activity. |
+| Sign-in | The landing button routes signed-out visitors to `/auth` and signed-in visitors to `/home`. The `/auth` route loads public runtime configuration and starts Auth0 email-code sign-in. |
+| Profiles | Profile creation/editing, courses, interests, skills, meeting preferences, and energy preferences. |
+| Buddies and SkillShare | Compatibility-ranked swipe decks, mutual-like matching, skill discovery, and matched-user conversations. |
+| Projects | Persistent project creation, browsing, owner-restricted deletion, and teammate discovery by required skill. |
+| Campus | A separate signed-in campus activity page backed by presence/heatmap code; demo limitations are described below. |
 
-Requires Node 22.15+ (22.x, 24.x, or 26.x) and npm 11.6+. Install with `npm ci`.
+The legacy `frontend/src/App.jsx` is still used by `/account`; it is not merely an unconnected reference. Product pages also use the shared FastAPI request helper in `frontend/src/api.js`.
+
+### Public deployment observation
+
+On November 9, 2026, the public landing page loaded and its **Log In / Sign Up** button navigated through `/auth` to the Auth0-hosted email sign-in screen. This observation did not include submitting an email, signing in, or testing authenticated workflows against production. Source implementation and local tests should not be presented as proof that every deployed workflow is operational.
+
+## Architecture
+
+- **Frontend:** React 19, TypeScript, Vite, and the DeepSpace `0.43.0` scaffold; routed product pages live under `frontend/src/pages/`.
+- **Public configuration:** `frontend/src/client-runtime.tsx` requests `/api/client-config`, configures the FastAPI base URL, and supplies Auth0 configuration. The route returns public SPA configuration, not provider secrets.
+- **API:** Python/FastAPI with SQLAlchemy models and Alembic migrations. SQLite is the local default; `DATABASE_URL` supports PostgreSQL. The production database engine is not established by this README.
+- **Identity:** Auth0 passwordless email sign-in with bearer tokens sent to FastAPI.
+- **Optional AI features:** Gemini-assisted listing and matching tools in the backend. Credentials stay server-side.
+
+The registered app identity is already present in `frontend/wrangler.toml`; `frontend/src/constants.ts` receives it from the build. Do not replace it with a made-up ID or initialize a second app to run a build. The local preview's placeholder identity is separate and is never a production identity.
+
+## Authentication, authorization, and eligibility
+
+`backend/app/auth.py` verifies RS256 JWT signatures using Auth0 JWKS and configures issuer and audience validation. It retrieves a verified email from Auth0 and applies the permitted email suffix list before resolving the application profile.
+
+The current list includes `student.ubc.ca`, `students.cs.ubc.ca`, `alum.ubc.ca`, and `ubc.ca`. **A verified address on this list does not prove current student enrollment.** Describe this as verified-email eligibility, not a guarantee that every account belongs to a current student.
+
+Authentication and resource authorization are separate. For example, project deletion checks the authenticated caller against the project owner. Matching responses intentionally omit private fields such as email, and conversation access has its own participant and matching checks. These controls do not constitute a comprehensive security audit.
+
+Backend tests commonly override the verified-email dependency for isolated behavior tests. They exercise application rules without proving the live Auth0 tenant, email delivery, callback configuration, or production token-validation flow.
+
+## Demo data and known limitations
+
+- Landing-page people, exchanges, and the public campus illustration are examples, not measured activity.
+- `backend/seed_demo.py` can create synthetic profiles under `@demo.ubcver.invalid`; those are not sign-in accounts.
+- Current `backend/app/skillshare.py` deliberately includes demo profiles and ratings in discovery. Scheduling an exchange with a demo profile is rejected.
+- Presence/heatmap code in `backend/app/main.py` contains demo behavior retaining older presence points. Do not interpret a populated map as a count of currently active real students without checking those settings.
+- Public documentation and code comments written during the original landing-only phase may still describe a prototype dialog or an unregistered app. For current wiring, inspect `frontend/src/pages/index.tsx`, `frontend/src/pages/auth.tsx`, `frontend/src/client-runtime.tsx`, `frontend/src/api.js`, and `frontend/wrangler.toml`.
+- Registration settings, database migrations, rate limits, retention policy, and production end-to-end verification remain separate operational concerns. No deployment or runtime settings are changed by this documentation update.
+
+## Development and checks
+
+Use Node `22.15+` in the supported 22.x, 24.x, or 26.x series and npm `11.6+`, as specified in `frontend/package.json`.
+
+```sh
+cd frontend
+npm ci
+npm run lint
+npm run test:frontend
+npm run type-check
+```
+
+From the repository root, for a local frontend preview:
 
 ```sh
 npm --prefix frontend run preview:local -- --host 127.0.0.1 --port 5174 --strictPort
 ```
 
-Open http://localhost:5174/. This uses `vite.preview.config.ts` and does **not** register an app, authenticate users, access a database, deploy, or spend DeepSpace credits. Its inert placeholder is never a valid DeepSpace app ID and the preview configuration is not for deployment or shared production data.
+`vite.preview.config.ts` is a frontend-only preview configuration. It does not provide the deployed worker's `/api/client-config`, a running FastAPI service, or a complete Auth0 environment. Landing content can be reviewed independently; this command is not an end-to-end authentication test and must not be deployed.
 
-## DeepSpace
-
-- SDK: `deepspace@0.43.0` (pinned)
-- Documentation: https://docs.deep.space — append `.md` to a documentation URL for Markdown.
-- Production build: `npx deepspace build`, or `npx deepspace deploy` when deliberate registration/deployment has been approved.
-- App registration: `npx deepspace auth whoami`, then `npx deepspace app init`. Confirm the intended owner first.
-- Full-stack local development: `npx deepspace dev start`, after checking the intended account and port.
-
-The scaffold intentionally leaves `DEEPSPACE_APP_ID = "__APP_ID__"` until registration. Do not substitute a hand-written ID to make the production build or SDK test configuration pass. The frontend-only preview/test configs are isolated from this safeguard.
-
-**Source control is GitHub:** `goople-tech/skillshare`. Before a first deployment, read https://docs.deep.space/guides/source-control.md. A first deployment can permanently attach the app's source provider; never run `deepspace push` as a shortcut.
-
-## Checks
+For isolated backend tests, create a disposable virtual environment and run from `backend/`:
 
 ```sh
-npm --prefix frontend run lint           # full-project ESLint
-npm --prefix frontend run test:frontend  # pure frontend validation tests; no app ID needed
-cd frontend && npm run type-check        # after app registration (SDK app ID required)
-cd frontend && npm run build             # production build; registered app ID required
+python -m pip install -r requirements.txt pytest
+python -m pytest tests
 ```
 
-## Team workflow
+The test fixtures use disposable SQLite data and identity overrides. Never point them at a production database. Representative test files include `test_profiles.py`, `test_swipe.py`, `test_projects.py`, and `test_messaging.py`.
 
-- Keep `main` stable. Work on small feature branches such as `feat/buddies-discovery`.
-- Rebase or merge the current default branch before opening a focused PR; do not rewrite teammates' branches.
-- Keep unrelated refactors and generated artifacts out of PRs. `node_modules`, `dist`, `.dev.vars`, and local credentials are ignored.
-- Include a short summary, UI screenshots for visual changes, commands tested, and any unfinished integration work.
-- Preserve distinctions between illustrative previews and live user data. Student status must be verified server-side before granting student-only privileges.
-- Follow the relevant `AGENTS.md` before editing. Frontend guidance is in `frontend/src/components/landing/AGENTS.md`. Backend-local boundaries are in `backend/AGENTS.md`.
+For integrated development, coordinate the existing app with its owner. Configure FastAPI's `AUTH0_DOMAIN`, `AUTH0_AUDIENCE`, and `DATABASE_URL`, and the frontend worker's `VITE_API_URL`, `VITE_AUTH0_DOMAIN`, `VITE_AUTH0_CLIENT_ID`, and `VITE_AUTH0_AUDIENCE` in the appropriate local environment. Keep secrets out of Git. The actual Auth0 callback route is `/auth`, so allowed callback URLs must include the relevant origin followed by `/auth`; do not rely on root-only callback examples in older setup notes.
 
-## Teammate backend starter
+## Team workflow and deployment
 
-`backend/` provides FastAPI, SQLite/Postgres, and Gemini-powered listing tools. The original `frontend/src/App.jsx` and `api.js` are preserved as integration references for that workflow; they are not connected to the new landing page yet. Latest main includes Auth0 passwordless code and bearer/JWKS verification for protected routes. Review its verified-email and token-validation behavior for actual identity handling; the landing demo domain check is only a presentation prototype. Keep any new integration explicit about its security boundary, coordinate API changes with backend contributors, and never expose `GEMINI_API_KEY` to the browser.
+- GitHub `goople-tech/skillshare` is the authoritative repository. Use focused branches and reviewable pull requests.
+- Read the applicable `AGENTS.md` before editing a component or backend feature. Preserve existing identity and privacy checks.
+- Coordinate schema/API changes with teammates; separate illustrative previews from actual application data.
+- DeepSpace documentation: [docs.deep.space](https://docs.deep.space/). Keep the existing registered app and source provider; deployment is a separate, deliberate action.
+- Do not commit local credentials, generated databases, dependency directories, or build output.
 
-## Dependency security
-
-DeepSpace remains `0.43.0`; its transitive `better-auth` dependency is pinned/overridden to `1.7.18` with the matching adapter family to address advisory-affected earlier 1.6 releases. This is a compatibility-only security fix until the Auth0 owner replaces the scaffold authentication; it is not a competing authentication implementation. No change to the landing page's explicit prototype signup flow is implied. Updating that override requires a matching compatibility review and an `npm ci`, not only a shallow `npm ls` against the previously installed directory.
+The commands above describe available checks; this documentation change does not claim that the entire test suite or production acceptance tests were run.
